@@ -9,4 +9,4 @@ allMetrics <- lapply(files, readfile)
 
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
 
-mergedMetrics <- Reduce(function(x, y) {merge(x,y)}, allMetrics)
+mergedMetrics <- Reduce(function(x, y) {merge(x,y, "time")}, allMetrics)
