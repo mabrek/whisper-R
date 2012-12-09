@@ -1,7 +1,8 @@
 files <- list.files()
 
 readfile <- function(name) {
-  read.table(name, na.strings="None", colClasses=c("numeric", "numeric"), col.names=c("time", name))
+  data <- read.table(name, na.strings="None", colClasses=c("numeric", "numeric"), col.names=c("time", name))
+  data <- data[!is.na(data[[2]]),]
 }
 
 allMetrics <- lapply(files, readfile)
