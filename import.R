@@ -5,6 +5,7 @@ readfile <- function(name) {
   data <- data[!is.na(data[[2]]),]
 }
 
+# use parallel versions for reading and merging
 allMetrics <- lapply(files, readfile)
 
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
