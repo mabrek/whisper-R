@@ -10,7 +10,7 @@ readfile <- function(name) {
 }
 
 # use parallel versions for reading and merging
-allMetrics <- na.exclude(lapply(files, readfile))
+allMetrics <- lapply(files, readfile)
 
 existingMetrics <- allMetrics[!is.na(allMetrics)]
 
