@@ -12,5 +12,7 @@ readfile <- function(name) {
 # use parallel versions for reading and merging
 allMetrics <- na.exclude(lapply(files, readfile))
 
+existingMetrics <- allMetrics[!is.na(allMetrics)]
+
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
-mergedMetrics <- Reduce(function(x, y) {merge(x,y)}, allMetrics)
+mergedMetrics <- Reduce(function(x, y) {merge(x,y, )}, existingMetrics)
