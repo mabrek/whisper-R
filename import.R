@@ -2,10 +2,10 @@ files <- list.files()
 
 readfile <- function(name) {
   data <- na.exclude(read.table(name, na.strings="None", colClasses=c("integer", "numeric"), col.names=c("time", name)))
-  if(nrow(data) == 0 | (min(data[[2]]) == max(data[[2]]))) {
+  if(nrow(data) == 0) {
      NA
    } else {
-     data
+     if (min(data[[2]]) == max(data[[2]])) NA else data
    }
 }
 
