@@ -20,3 +20,5 @@ mergedMetrics <- Reduce(function(x, y) {merge(x,y, by="time", all=TRUE)}, existi
 
 correlated <- cor(mergedMetrics, use="pairwise.complete.obs")
 correlated[is.na(correlated)] <- 0
+
+distanced <- as.dist(1-abs(correlated))
