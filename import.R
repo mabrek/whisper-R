@@ -17,8 +17,3 @@ existingMetrics <- allMetrics[!is.na(allMetrics)]
 
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
 mergedMetrics <- Reduce(function(x, y) {merge(x,y, by="time", all=TRUE)}, existingMetrics)
-
-correlated <- cor(mergedMetrics, use="pairwise.complete.obs")
-correlated[is.na(correlated)] <- 0
-
-distanced <- as.dist(1-abs(correlated))
