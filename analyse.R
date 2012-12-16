@@ -16,9 +16,9 @@ anomalyScore <- function (x, term = 30, ...)
     train <- x[i:(i + term)]
     target <- x[(i + term + 1)]
     fit <- auto.arima(train, ...)
-    pred <- as.numeric(forecast(fit, h = 1)$pred)
+    pred <- forecast(fit, h = 1)$mean[1]
     m <- mean(fit$residuals)
     s <- sd(fit$residuals)
-    dnorm(pred - target, m, s)
+    -log(dnorm(pred - target, m, s))
   })
 }
