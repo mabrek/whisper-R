@@ -10,7 +10,7 @@ distance <- function(correlated) {
 }
 
 # the code below is based on ChangeAnomalyDetection package
-anomalyScore <- function (x, term = 30, ...) 
+arimaScore <- function (x, term = 30, ...) 
 {
   sapply(1:(length(x) - term - 1), function(i) {
     train <- x[i:(i + term)]
@@ -22,3 +22,11 @@ anomalyScore <- function (x, term = 30, ...)
     -log(dnorm(pred - target, m, s))
   })
 }
+
+linearScore <- function (x, term = 30, ...) {
+  sapply(1:(length(x) - term), function(i) {
+    train <- x[i:(i + term)]
+    fit <- lm(y ~ x, data.frame(x=1:term, y=train))
+    # TODO measure fit
+  })
+}   
