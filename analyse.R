@@ -24,9 +24,10 @@ arimaScore <- function (x, term = 30, ...)
 }
 
 linearScore <- function (x, term = 30, ...) {
-  sapply(1:(length(x) - term), function(i) {
-    train <- x[i:(i + term)]
-    fit <- lm(y ~ x, data.frame(x=1:term, y=train))
-    # TODO measure fit
+  score <- sapply(1:(length(x) - term), function(i) {
+    train <- x[i:(i + term - 1)]
+    fit <- lm(b ~ a, data.frame(a=1:term, b=train))
+    1 - summary(fit)$adj.r.squared
   })
+  c(rep(0, round(term/2)), score, rep(0, term - round(term/2)))
 }   
