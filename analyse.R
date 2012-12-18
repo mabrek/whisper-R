@@ -17,9 +17,13 @@ linearScoreVector <- function (x, y, term = 30, ...) {
     } else {
       df = data.frame(a = x[i:(i + term - 1)], b = y[i:(i + term - 1)])
     }
-    1 - summary(lm(b ~ a, df, ...))$adj.r.squared
+    if(length(na.omit(df$b)) > 0) {
+      1 - summary(lm(b ~ a, df, na.action=na.omit, ...))$adj.r.squared
+    } else {
+      NA
+    }
   })
-  c(rep(0, round(term/2)), score, rep(0, term - round(term/2)))
+  c(rep(NA, round(term/2)), score, rep(NA, term - round(term/2)))
 }   
 
 linearScore <- function (df, axis = "relTime", ...) {
