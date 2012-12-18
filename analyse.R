@@ -9,7 +9,7 @@ distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
-linearScore <- function (x, term = 30, ...) {
+linearScoreVector <- function (x, term = 30, ...) {
   score <- sapply(1:(length(x) - term), function(i) {
     train <- x[i:(i + term - 1)]
     fit <- lm(b ~ a, data.frame(a=1:term, b=train))
