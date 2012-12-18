@@ -28,5 +28,5 @@ linearScore <- function (df, axis = "time", ...) {
     linearScoreVector(df[[axis]], x, ...)
   })
   scored[[axis]] = df[[axis]]
-  scored
+  as.data.frame(scored)
 }
