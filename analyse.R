@@ -1,5 +1,3 @@
-library(forecast)
-
 correlate <- function(x) {
   correlated <- cor(x, use="pairwise.complete.obs")
   correlated[is.na(correlated)] <- 0
