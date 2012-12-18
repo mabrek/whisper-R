@@ -21,3 +21,12 @@ linearScoreVector <- function (x, y, term = 30, ...) {
   })
   c(rep(0, round(term/2)), score, rep(0, term - round(term/2)))
 }   
+
+linearScore <- function (df, axis = "time", ...) {
+  columns = colnames(df)[colnames(df) != axis]
+  scored = lapply(df[columns], function(x) {
+    linearScoreVector(df[[axis]], x, ...)
+  })
+  scored[[axis]] = df[[axis]]
+  scored
+}
