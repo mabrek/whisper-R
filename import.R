@@ -19,3 +19,5 @@ existingMetrics <- allMetrics[!is.na(allMetrics)]
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
 # TODO consider plyr::join or read and merge in parallel (package foreach?)
 mergedMetrics <- Reduce(function(x, y) {merge(x,y, by="time", all=TRUE)}, existingMetrics)
+
+mergedMetrics$relTime <- mergedMetrics$time - min(mergedMetrics$time)
