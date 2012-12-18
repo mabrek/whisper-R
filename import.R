@@ -1,3 +1,5 @@
+library(parallel)
+
 files <- list.files()
 
 readfile <- function(name) {
@@ -10,11 +12,10 @@ readfile <- function(name) {
    }
 }
 
-# TODO use parallel versions for reading and merging
-allMetrics <- lapply(files, readfile)
+allMetrics <- mclapply(files, readfile, mc.allow.recursive = FALSE)
 
 existingMetrics <- allMetrics[!is.na(allMetrics)]
 
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
-# TODO consider plyr::join
+# TODO consider plyr::join or read and merge in parallel (package foreach?)
 mergedMetrics <- Reduce(function(x, y) {merge(x,y, by="time", all=TRUE)}, existingMetrics)
