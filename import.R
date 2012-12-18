@@ -16,4 +16,5 @@ allMetrics <- lapply(files, readfile)
 existingMetrics <- allMetrics[!is.na(allMetrics)]
 
 # http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
+# TODO consider plyr::join
 mergedMetrics <- Reduce(function(x, y) {merge(x,y, by="time", all=TRUE)}, existingMetrics)
