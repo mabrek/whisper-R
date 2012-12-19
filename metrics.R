@@ -32,7 +32,7 @@ load.metrics <- function(path=".") {
     read.file(f)
   }
   metrics$rel.time <- metrics$time - min(metrics$time)
-  metrics
+  metrics[order(metrics$rel.time),]
 }
 
 set.cores <- function(cores = detectCores()) {
