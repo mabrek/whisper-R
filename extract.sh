@@ -26,5 +26,6 @@ WSPS=`find -L . -name '*.wsp'`
 for WSP in $WSPS; 
 do
     DATA=`echo $WSP | perl -pe 's!^[^/]+/(.+)\.wsp$!$1!; s!/!.!g'`;
+    # TODO realpath $3
     whisper-fetch.py --from=$1 --until=$2 $WSP > $3/$DATA
 done
