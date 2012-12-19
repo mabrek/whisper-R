@@ -18,9 +18,9 @@ read.file <- function(file.name) {
 }
 
 merge.metrics <- function(x,y) {
-  if (is.na(x))
+  if (all(is.na(x)))
     y
-  else if(is.na(y))
+  else if(all(is.na(y)))
     x
   else
     join(x, y, by="time", type="full", match="first")
