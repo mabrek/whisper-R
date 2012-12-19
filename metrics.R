@@ -49,10 +49,10 @@ distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
-linearScoreVector <- function (x, y, term = 30, ...) {
-  missingY = missing(y)
+linear.score.vector <- function (x, y, term = 30, ...) {
+  missing.y = missing(y)
   score <- sapply(1:(length(x) - term), function(i) {
-    if(missingY) {
+    if(missing.y) {
       df = data.frame(a = 1:term, b = x[i:(i + term - 1)])
     } else {
       df = data.frame(a = x[i:(i + term - 1)], b = y[i:(i + term - 1)])
@@ -66,10 +66,10 @@ linearScoreVector <- function (x, y, term = 30, ...) {
   c(rep(NA, round(term/2)), score, rep(NA, term - round(term/2)))
 }   
 
-linearScore <- function (df, axis = "relTime", ...) {
+linear.score <- function (df, axis = "relTime", ...) {
   columns = colnames(df)[colnames(df) != axis]
   lsv = function(x) {
-    linearScoreVector(df[[axis]], x, ...)
+    linear.score.vector(df[[axis]], x, ...)
   }
   scored = mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
   scored[[axis]] = df[[axis]]
