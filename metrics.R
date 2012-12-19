@@ -66,7 +66,7 @@ linear.score.vector <- function (x, y, term = 30, ...) {
   c(rep(NA, round(term/2)), score, rep(NA, term - round(term/2)))
 }   
 
-linear.score <- function (df, axis = "relTime", ...) {
+linear.score <- function (df, axis = "rel.time", ...) {
   columns = colnames(df)[colnames(df) != axis]
   lsv = function(x) {
     linear.score.vector(df[[axis]], x, ...)
