@@ -1,23 +1,39 @@
-library(parallel)
+library(foreach)
+library(doParallel)
+library(plyr)
 
-files <- list.files()
-
-readfile <- function(name) {
-  data <- na.exclude(read.table(name, na.strings="None", colClasses=c("integer", "numeric"), col.names=c("time", name)))
-  if(nrow(data) == 0) {
-     NA
-   } else {
-     # TODO exclude noise-like and mostly constant
-     if (min(data[[2]]) == max(data[[2]])) NA else data
-   }
+read.file <- function(file.name) {
+  data <- na.omit(
+    read.table(
+      file.name,
+      na.strings="None",
+      colClasses=c("integer", "numeric"),
+      col.names=c("time", basename(file.name))))
+  if (nrow(data) == 0)
+    NA
+  else if (min(data[[2]]) == max(data[[2]]))
+    NA
+  else
+    data
 }
 
-allMetrics <- mclapply(files, readfile, mc.allow.recursive = FALSE)
+merge.metrics <- function(x,y) {
+  if (is.na(x))
+    y
+  else if(is.na(y))
+    x
+  else
+    join(x, y, by="time", type="full", match="first")
+}
 
-existingMetrics <- allMetrics[!is.na(allMetrics)]
+load.metrics <- function(path=".") {
+  metrics <- foreach(f=list.files(path, full.names=TRUE), .combine=merge.metrics, .packages="plyr") %dopar% {
+    read.file(f)
+  }
+  metrics$relTime <- metrics$time - min(metrics$time)
+  metrics
+}
 
-# http://www.r-bloggers.com/merging-multiple-data-files-into-one-data-frame/
-# TODO consider plyr::join or read and merge in parallel (package foreach?)
-mergedMetrics <- Reduce(function(x, y) {merge(x,y, by="time", all=TRUE)}, existingMetrics)
-
-mergedMetrics$relTime <- mergedMetrics$time - min(mergedMetrics$time)
+set.cores <- function(cores = detectCores()) {
+  registerDoParallel(cores)
+}
