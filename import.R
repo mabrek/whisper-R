@@ -31,7 +31,7 @@ load.metrics <- function(path=".") {
   metrics <- foreach(f=list.files(path, full.names=TRUE), .combine=merge.metrics, .packages="plyr") %dopar% {
     read.file(f)
   }
-  metrics$relTime <- metrics$time - min(metrics$time)
+  metrics$rel.time <- metrics$time - min(metrics$time)
   metrics
 }
 
