@@ -27,6 +27,7 @@ merge.metrics <- function(x,y) {
 }
 
 load.metrics <- function(path=".") {
+  # TODO combine in parallel
   metrics <- foreach(f=list.files(path, full.names=TRUE), .combine=merge.metrics, .packages="plyr") %dopar% {
     read.file(f)
   }
