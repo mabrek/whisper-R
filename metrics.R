@@ -37,6 +37,7 @@ load.metrics <- function(path=".") {
 
 set.cores <- function(cores = detectCores()) {
   registerDoParallel(cores)
+  options(mc.cores = cores)
 }
 
 correlate <- function(x) {

@@ -1,2 +1,1 @@
-set correct number of cores before runnning via :
-> options(mc.cores = detectCores())
+set correct number of cores before runnning via set.cores()
