@@ -58,7 +58,12 @@ linear.score.vector <- function (x, y, term = 30, ...) {
       df = data.frame(a = x[i:(i + term - 1)], b = y[i:(i + term - 1)])
     }
     if(length(na.omit(df$b)) > 0) {
-      1 - summary(lm(b ~ a, df, na.action=na.omit, ...))$adj.r.squared
+      model = lm(b ~ a, df, na.action=na.omit, ...)
+      if (all(resid(model) == 0)) {
+        0
+      } else {
+        1 - summary(model)$adj.r.squared
+      }
     } else {
       NA
     }
