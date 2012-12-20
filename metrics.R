@@ -79,6 +79,5 @@ linear.score <- function (df, axis = "rel.time", ...) {
     linear.score.vector(df[[axis]], x, ...)
   }
   scored = mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
-  scored[[axis]] = df[[axis]]
   as.data.frame(scored)
 }
