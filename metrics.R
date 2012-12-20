@@ -68,7 +68,9 @@ linear.score.vector <- function (x, y, term = 30, ...) {
       NA
     }
   })
-  c(rep(NA, round(term/2)), score, rep(NA, term - round(term/2)))
+  c(rep(NA, round(term/2)),
+    scale(score, center=TRUE, scale=FALSE)[,1],
+    rep(NA, term - round(term/2)))
 }   
 
 linear.score <- function (df, axis = "rel.time", ...) {
