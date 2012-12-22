@@ -75,6 +75,7 @@ linear.score.vector <- function (x, y, term = 30, ...) {
 
 linear.score <- function (df, axis = "rel.time", ...) {
   columns = colnames(df)[colnames(df) != axis]
+  columns = columns[grep("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts", columns, invert=TRUE)]
   lsv = function(x) {
     linear.score.vector(df[[axis]], x, ...)
   }
