@@ -11,8 +11,6 @@ read.file <- function(file.name) {
       col.names=c("time", basename(file.name))))
   if (nrow(data) == 0)
     NA
-  else if (min(data[[2]]) == max(data[[2]]))
-    NA
   else
     data
 }
@@ -76,6 +74,7 @@ linear.score.vector <- function (x, y, term = 30, ...) {
 linear.score <- function (df, axis = "rel.time", ...) {
   columns = colnames(df)[colnames(df) != axis]
   columns = columns[grep("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts", columns, invert=TRUE)]
+  # TODO filter constants here
   lsv = function(x) {
     linear.score.vector(df[[axis]], x, ...)
   }
