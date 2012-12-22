@@ -71,10 +71,19 @@ linear.score.vector <- function (x, y, term = 30, ...) {
     rep(NA, term - round(term/2)))
 }   
 
+filter.columns <- function(df, axis = "rel.time") {
+  ranges <- sapply(df, range, na.rm=TRUE)
+  columns <- colnames[df]
+  columns[columns != axis
+          & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts", columns)
+          & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[1,] > 2)
+          & ranges[1,] != ranges[2,]
+          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[1,] > 0.5)
+          ]
+}
+
 linear.score <- function (df, axis = "rel.time", ...) {
-  columns = colnames(df)[colnames(df) != axis]
-  columns = columns[grep("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts", columns, invert=TRUE)]
-  # TODO filter constants here
+  columns <- filter.columns(df, axis)
   lsv = function(x) {
     linear.score.vector(df[[axis]], x, ...)
   }
