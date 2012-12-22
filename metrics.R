@@ -102,3 +102,10 @@ find.maxima <- function(x, smooth = 10, n = 5) {
   top.maxima <- smoothed[top.maxima.loc]
   cbind(top.maxima.loc, top.maxima)
 }
+
+compose.maxima <- function(scored, axis, ...) {
+  rbind.fill(mclapply(colnames(scored), function(x) {
+    maxima = find.maxima(scored[[x]], ...)
+    data.frame(name=x, axis=axis[maxima[,1]], maxima=maxima[,2])
+  }))
+}
