@@ -73,7 +73,7 @@ linear.score.vector <- function (x, y, term = 30, ...) {
 
 filter.columns <- function(df, axis = "rel.time") {
   ranges <- sapply(df, range, na.rm=TRUE)
-  columns <- colnames[df]
+  columns <- colnames(df)
   columns[columns != axis
           & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts|cpu\\.idle\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[1,] > 2)
