@@ -109,3 +109,7 @@ compose.maxima <- function(scored, axis, ...) {
     data.frame(name=x, axis=axis[maxima[,1]], maxima=maxima[,2])
   }))
 }
+
+top.maxima <- function(composed, n=50) {
+  composed[head(order(composed$maxima, decreasing=TRUE), n=n),]
+}
