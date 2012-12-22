@@ -1,6 +1,7 @@
 library(foreach)
 library(doParallel)
 library(plyr)
+library(caTools)
 
 read.file <- function(file.name) {
   data <- na.omit(
@@ -89,4 +90,13 @@ linear.score <- function (df, axis = "rel.time", ...) {
   }
   scored = mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
   as.data.frame(scored)
+}
+
+find.maxima <- function(x, smooth = 10, n = 5) {
+  smoothed <- runmean(x, smooth)
+  maxima.loc <- unique(
+    c(which(diff(sign(diff(smoothed))) == -2),
+      which.max(smoothed)))
+  top.maxima.loc = maxima.loc[head(order(smoothed[maxima.loc],decreasing=TRUE), n=n)]
+  cbind(top.maxima.loc, smoothed[top.maxima.loc])
 }
