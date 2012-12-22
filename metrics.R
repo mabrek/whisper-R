@@ -97,6 +97,7 @@ find.maxima <- function(x, smooth = 10, n = 5) {
   maxima.loc <- unique(
     c(which(diff(sign(diff(smoothed))) == -2),
       which.max(smoothed)))
-  top.maxima.loc = maxima.loc[head(order(smoothed[maxima.loc],decreasing=TRUE), n=n)]
-  cbind(top.maxima.loc, smoothed[top.maxima.loc])
+  top.maxima.loc <- maxima.loc[head(order(smoothed[maxima.loc],decreasing=TRUE), n=n)]
+  top.maxima <- smoothed[top.maxima.loc]
+  cbind(top.maxima.loc, top.maxima)
 }
