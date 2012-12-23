@@ -72,9 +72,15 @@ linear.score.vector <- function (x, y, term = 30, ...) {
     rep(NA, term - round(term/2)))
 }   
 
-filter.columns <- function(df, axis = "rel.time") {
-  ranges <- sapply(df, range, na.rm=TRUE)
+filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
   columns <- colnames(df)
+  means <- sapply(df, mean, na.rm=TRUE)
+  cleaned.df <- sapply(columns, function(x) {
+    v = df[[x]]
+    v[tail(order(abs(df[[x]]-means[x])), outliers.rm)] <- NA
+    v
+  })
+  ranges <- sapply(cleaned.df, range, na.rm=TRUE)
   columns[columns != axis
           & columns != "time"
           & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts|cpu\\.idle\\.value$", columns)
