@@ -75,11 +75,11 @@ linear.score.vector <- function (x, y, term = 30, ...) {
 filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
   columns <- colnames(df)
   means <- sapply(df, mean, na.rm=TRUE)
-  cleaned.df <- sapply(columns, function(x) {
+  cleaned.df <- as.data.frame(sapply(columns, function(x) {
     v = df[[x]]
     v[tail(order(abs(df[[x]]-means[x])), outliers.rm)] <- NA
     v
-  })
+  }))
   ranges <- sapply(cleaned.df, range, na.rm=TRUE)
   columns[columns != axis
           & columns != "time"
