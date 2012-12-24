@@ -83,7 +83,7 @@ filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
   ranges <- sapply(cleaned.df, range, na.rm=TRUE)
   columns[columns != axis
           & columns != "time"
-          & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts|cpu\\.idle\\.value$", columns)
+          & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[1,] > 2)
           & ranges[1,] != ranges[2,]
           & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[1,] > 0.5)
