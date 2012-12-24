@@ -112,7 +112,11 @@ find.maxima <- function(x, smooth = 10, n = 5) {
 compose.maxima <- function(scored, axis, ...) {
   rbind.fill(mclapply(colnames(scored), function(x) {
     maxima = find.maxima(scored[[x]], ...)
-    data.frame(name=x, axis=axis[maxima[,1]], maxima=maxima[,2])
+    if (length(maxima) == 0) {
+      data.frame()
+    } else {
+      data.frame(name=x, axis=axis[maxima[,1]], maxima=maxima[,2])
+    }
   }))
 }
 
