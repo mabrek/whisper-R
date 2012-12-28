@@ -45,7 +45,7 @@ correlate <- function(x) {
   correlated
 }
 
-distance <- function(correlated) {
+get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
@@ -73,7 +73,7 @@ linear.score.vector <- function (x, y, term = 30, ...) {
     rep(NA, term - round(term/2)))
 }   
 
-filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
+filter.columns <- function(df, time.axis = "rel.time", outliers.rm = 5) {
   columns <- colnames(df)
   means <- sapply(df, mean, na.rm=TRUE)
   cleaned.df <- as.data.frame(sapply(columns, function(x) {
@@ -82,7 +82,7 @@ filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
     v
   }))
   ranges <- sapply(cleaned.df, range, na.rm=TRUE)
-  columns[columns != axis
+  columns[columns != time.axis
           & columns != "time"
           & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
@@ -91,36 +91,37 @@ filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
           ]
 }
 
-linear.score <- function (df, axis = "rel.time", ...) {
-  columns <- filter.columns(df, axis)
+linear.score <- function (df, time.axis = "rel.time", ...) {
+  columns <- filter.columns(df, time.axis)
   lsv <- function(x) {
-    linear.score.vector(df[[axis]], x, ...)
+    linear.score.vector(df[[time.axis]], x, ...)
   }
   scored <- mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
   as.data.frame(scored)
 }
 
-find.maxima <- function(x, smooth = 10, n = 5) {
+find.maximum <- function(x, smooth = 10, n = 5) {
   smoothed <- runmean(x, smooth)
-  maxima.loc <- unique(
+  maximum.loc <- unique(
     c(which(diff(sign(diff(smoothed))) == -2),
       which.max(smoothed)))
-  top.maxima.loc <- maxima.loc[head(order(smoothed[maxima.loc], decreasing=TRUE), n=n)]
-  top.maxima <- smoothed[top.maxima.loc]
-  cbind(top.maxima.loc, top.maxima)
+  top.maximum.loc <- maximum.loc[head(order(smoothed[maximum.loc], decreasing=TRUE), n=n)]
+  top.maximum <- smoothed[top.maximum.loc]
+  cbind(top.maximum.loc, top.maximum)
 }
 
-compose.maxima <- function(scored, axis, ...) {
+compose.maximum <- function(scored, time.axis, ...) {
   rbind.fill(mclapply(colnames(scored), function(x) {
-    maxima <- find.maxima(scored[[x]], ...)
-    if (length(maxima) == 0) {
+    maximum <- find.maximum(scored[[x]], ...)
+    if (length(maximum) == 0) {
       data.frame()
     } else {
-      data.frame(name=x, axis=axis[maxima[,1]], maxima=maxima[,2])
+      data.frame(name=x, time=time.axis[maximum[,1]], maximum=maximum[,2])
     }
   }))
 }
 
-top.maxima <- function(composed, n=50) {
-  composed[head(order(composed$maxima, decreasing=TRUE), n=n),]
+top.maximum <- function(composed, n=50) {
+  composed[head(order(composed$maximum, decreasing=TRUE), n=n),]
+}
 }
