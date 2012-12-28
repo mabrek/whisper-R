@@ -50,15 +50,15 @@ distance <- function(correlated) {
 }
 
 linear.score.vector <- function (x, y, term = 30, ...) {
-  missing.y = missing(y)
+  missing.y <- missing(y)
   score <- sapply(1:(length(x) - term), function(i) {
     if(missing.y) {
-      df = data.frame(a = 1:term, b = x[i:(i + term - 1)])
+      df <- data.frame(a = 1:term, b = x[i:(i + term - 1)])
     } else {
-      df = data.frame(a = x[i:(i + term - 1)], b = y[i:(i + term - 1)])
+      df <- data.frame(a = x[i:(i + term - 1)], b = y[i:(i + term - 1)])
     }
     if(length(na.omit(df$b)) > 0) {
-      model = lm(b ~ a, df, na.action=na.omit, ...)
+      model <- lm(b ~ a, df, na.action=na.omit, ...)
       if (all(resid(model) == 0)) {
         0
       } else {
@@ -77,7 +77,7 @@ filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
   columns <- colnames(df)
   means <- sapply(df, mean, na.rm=TRUE)
   cleaned.df <- as.data.frame(sapply(columns, function(x) {
-    v = df[[x]]
+    v <- df[[x]]
     v[tail(order(abs(df[[x]]-means[x])), outliers.rm)] <- NA
     v
   }))
@@ -93,10 +93,10 @@ filter.columns <- function(df, axis = "rel.time", outliers.rm = 5) {
 
 linear.score <- function (df, axis = "rel.time", ...) {
   columns <- filter.columns(df, axis)
-  lsv = function(x) {
+  lsv <- function(x) {
     linear.score.vector(df[[axis]], x, ...)
   }
-  scored = mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
+  scored <- mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
   as.data.frame(scored)
 }
 
@@ -105,14 +105,14 @@ find.maxima <- function(x, smooth = 10, n = 5) {
   maxima.loc <- unique(
     c(which(diff(sign(diff(smoothed))) == -2),
       which.max(smoothed)))
-  top.maxima.loc <- maxima.loc[head(order(smoothed[maxima.loc],decreasing=TRUE), n=n)]
+  top.maxima.loc <- maxima.loc[head(order(smoothed[maxima.loc], decreasing=TRUE), n=n)]
   top.maxima <- smoothed[top.maxima.loc]
   cbind(top.maxima.loc, top.maxima)
 }
 
 compose.maxima <- function(scored, axis, ...) {
   rbind.fill(mclapply(colnames(scored), function(x) {
-    maxima = find.maxima(scored[[x]], ...)
+    maxima <- find.maxima(scored[[x]], ...)
     if (length(maxima) == 0) {
       data.frame()
     } else {
