@@ -1,5 +1,3 @@
-library(foreach)
-library(doParallel)
 library(plyr)
 library(caTools)
 
@@ -26,16 +24,13 @@ merge.metrics <- function(x,y) {
 }
 
 load.metrics <- function(path=".") {
-  # TODO combine in parallel
-  metrics <- foreach(f=list.files(path, full.names=TRUE), .combine=merge.metrics, .packages="plyr") %dopar% {
-    read.file(f)
-  }
+  metrics <- Reduce(merge.metrics,
+                    lapply(list.files(path, full.names=TRUE), read.file))
   metrics$rel.time <- metrics$time - min(metrics$time)
   metrics[order(metrics$rel.time),]
 }
 
 set.cores <- function(cores = detectCores()) {
-  registerDoParallel(cores)
   options(mc.cores = cores)
 }
 
@@ -123,5 +118,4 @@ compose.maximum <- function(scored, time.axis, ...) {
 
 top.maximum <- function(composed, n=50) {
   composed[head(order(composed$maximum, decreasing=TRUE), n=n),]
-}
 }
