@@ -9,7 +9,8 @@ read.file <- function(file.name) {
     na.strings="None",
     colClasses=c("integer", "numeric"),
     col.names=c("time", basename(file.name)),
-    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00.00", tz="UTC")})
+    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00.00", tz="UTC")},
+    drop=FALSE)
 }
 
 merge.metrics <- function(x,y) {
