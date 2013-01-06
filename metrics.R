@@ -23,10 +23,7 @@ merge.metrics <- function(x,y) {
 }
 
 load.metrics <- function(path=".") {
-  metrics <- Reduce(merge.metrics,
-                    lapply(list.files(path, full.names=TRUE), read.file))
-  metrics$rel.time <- metrics$time - min(metrics$time)
-  metrics[order(metrics$rel.time),]
+  do.call(merge.zoo, lapply(list.files(path, full.names=TRUE), read.file))
 }
 
 set.cores <- function(cores = detectCores()) {
