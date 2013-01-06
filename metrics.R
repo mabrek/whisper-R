@@ -13,15 +13,6 @@ read.file <- function(file.name) {
     drop=FALSE)
 }
 
-merge.metrics <- function(x,y) {
-  if (all(is.na(x)))
-    y
-  else if(all(is.na(y)))
-    x
-  else
-    join(x, y, by="time", type="full", match="first")
-}
-
 load.metrics <- function(path=".") {
   do.call(merge.zoo, lapply(list.files(path, full.names=TRUE), read.file))
 }
