@@ -1,18 +1,15 @@
 library(plyr)
 library(caTools)
 library(parallel)
+library(zoo)
 
 read.file <- function(file.name) {
-  data <- na.omit(
-    read.table(
-      file.name,
-      na.strings="None",
-      colClasses=c("integer", "numeric"),
-      col.names=c("time", basename(file.name))))
-  if (nrow(data) == 0)
-    NA
-  else
-    data
+  read.zoo(
+    file.name,
+    na.strings="None",
+    colClasses=c("integer", "numeric"),
+    col.names=c("time", basename(file.name)),
+    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00.00", tz="UTC")})
 }
 
 merge.metrics <- function(x,y) {
