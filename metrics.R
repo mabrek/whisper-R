@@ -1,5 +1,6 @@
 library(plyr)
 library(caTools)
+library(parallel)
 
 read.file <- function(file.name) {
   data <- na.omit(
