@@ -55,18 +55,16 @@ linear.score.vector <- function (x, y, term = 30, ...) {
     rep(NA, term - round(term/2)))
 }   
 
-filter.columns <- function(df, time.axis = "rel.time", outliers.rm = 5) {
+filter.columns <- function(df, outliers.rm = 5) {
   columns <- colnames(df)
   means <- sapply(df, mean, na.rm=TRUE)
   cleaned.df <- as.data.frame(sapply(columns, function(x) {
-    v <- df[[x]]
-    v[tail(order(abs(df[[x]]-means[x])), outliers.rm)] <- NA
+    v <- df[,x]
+    v[tail(order(abs(df[,x] - means[x])), outliers.rm)] <- NA
     v
   }))
   ranges <- sapply(cleaned.df, range, na.rm=TRUE)
-  columns[columns != time.axis
-          & columns != "time"
-          & !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
+  columns[!grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
           & ranges[1,] != ranges[2,]
           & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
