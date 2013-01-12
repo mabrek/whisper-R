@@ -31,6 +31,10 @@ get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
+get.relative.time <- function(metrics) {
+  index(metrics) - min(index(metrics))
+}
+
 linear.score.vector <- function (x, y, term = 30, ...) {
   missing.y <- missing(y)
   score <- sapply(1:(length(x) - term), function(i) {
