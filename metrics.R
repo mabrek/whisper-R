@@ -56,6 +56,10 @@ find.linear <- function(metrics, subset) {
   metrics[,which(abs(cor(as.numeric(rel.time), metrics[subset,])) > 0.9)]
 }
 
+exclude.columns <- function(what, from) {
+  from[,setdiff(colnames(from), colnames(what))]
+}
+
 linear.score.vector <- function (x, y, term = 30, ...) {
   if(missing(y)) {
     df <- data.frame(a = 1:length(x), b = x)
