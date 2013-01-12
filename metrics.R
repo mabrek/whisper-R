@@ -74,12 +74,12 @@ filter.metrics <- function(metrics, outliers.rm = 5) {
           ]
 }
 
-linear.score <- function (df, time.axis = "rel.time", ...) {
-  columns <- filter.columns(df, time.axis)
-  lsv <- function(x) {
-    linear.score.vector(df[[time.axis]], x, ...)
+linear.score <- function(metrics, ...) {
+  rel.time <- get.relative.time(metrics)
+  lsv <- function(y) {
+    linear.score.vector(rel.time, y, ...)
   }
-  scored <- mclapply(df[columns], lsv, mc.allow.recursive = FALSE)
+  scored <- mclapply(metrics, lsv, mc.allow.recursive = FALSE)
   as.data.frame(scored)
 }
 
