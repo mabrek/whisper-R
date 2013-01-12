@@ -31,6 +31,22 @@ get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
+filter.metrics <- function(metrics, outliers.rm = 5) {
+  ranges <- sapply(metrics, function(v) {
+    m <- mean(v, na.rm=TRUE)
+    v[tail(order(abs(v - m), na.last=FALSE), outliers.rm)] <- NA
+    range(v, na.rm=TRUE)
+  })
+  columns <- colnames(metrics)
+  metrics[,!grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
+          & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
+          & ranges[1,] != ranges[2,]
+          & is.finite(ranges[1,])
+          & is.finite(ranges[2,])
+          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
+          ]
+}
+
 get.relative.time <- function(metrics) {
   index(metrics) - min(index(metrics))
 }
@@ -57,22 +73,6 @@ linear.score.vector <- function (x, y, term = 30, ...) {
     scale(score, center=TRUE, scale=FALSE)[,1],
     rep(NA, term - round(term/2)))
 }   
-
-filter.metrics <- function(metrics, outliers.rm = 5) {
-  ranges <- sapply(metrics, function(v) {
-    m <- mean(v, na.rm=TRUE)
-    v[tail(order(abs(v - m), na.last=FALSE), outliers.rm)] <- NA
-    range(v, na.rm=TRUE)
-  })
-  columns <- colnames(metrics)
-  metrics[,!grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
-          & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
-          & ranges[1,] != ranges[2,]
-          & is.finite(ranges[1,])
-          & is.finite(ranges[2,])
-          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
-          ]
-}
 
 linear.score <- function(metrics, ...) {
   rel.time <- get.relative.time(metrics)
