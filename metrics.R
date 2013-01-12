@@ -51,6 +51,11 @@ get.relative.time <- function(metrics) {
   index(metrics) - min(index(metrics))
 }
 
+find.linear <- function(metrics, subset) {
+  rel.time <- get.relative.time(metrics[subset,])
+  metrics[,which(abs(cor(as.numeric(rel.time), metrics[subset,])) > 0.9)]
+}
+
 linear.score.vector <- function (x, y, term = 30, ...) {
   if(missing(y)) {
     df <- data.frame(a = 1:length(x), b = x)
