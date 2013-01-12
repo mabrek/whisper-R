@@ -59,14 +59,14 @@ linear.score.vector <- function (x, y, term = 30, ...) {
     rep(NA, term - round(term/2)))
 }   
 
-filter.columns <- function(df, outliers.rm = 5) {
-  ranges <- sapply(df, function(v) {
+filter.metrics <- function(metrics, outliers.rm = 5) {
+  ranges <- sapply(metrics, function(v) {
     m <- mean(v, na.rm=TRUE)
     v[tail(order(abs(v - m), na.last=FALSE), outliers.rm)] <- NA
     range(v, na.rm=TRUE)
   })
-  columns <- colnames(df)
-  columns[!grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
+  columns <- colnames(metrics)
+  metrics[,!grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
           & ranges[1,] != ranges[2,]
           & is.finite(ranges[1,])
