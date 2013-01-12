@@ -58,7 +58,7 @@ linear.score.vector <- function (x, y, term = 30, ...) {
 filter.columns <- function(df, outliers.rm = 5) {
   ranges <- sapply(df, function(v) {
     m <- mean(v, na.rm=TRUE)
-    v[tail(order(abs(v - m)), outliers.rm)] <- NA
+    v[tail(order(abs(v - m), na.last=FALSE), outliers.rm)] <- NA
     range(v, na.rm=TRUE)
   })
   columns <- colnames(df)
