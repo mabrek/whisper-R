@@ -36,15 +36,14 @@ get.relative.time <- function(metrics) {
 }
 
 linear.score.vector <- function (x, y, term = 30, ...) {
-  missing.y <- missing(y)
+  if(missing(y)) {
+    df <- data.frame(a = 1:length(x), b = x)
+  } else {
+    df <- data.frame(a = x, b = y)
+  }
   score <- sapply(1:(length(x) - term), function(i) {
-    if(missing.y) {
-      df <- data.frame(a = 1:term, b = x[i:(i + term - 1)])
-    } else {
-      df <- data.frame(a = x[i:(i + term - 1)], b = y[i:(i + term - 1)])
-    }
-    if(length(na.omit(df$b)) > 0) {
-      model <- lm(b ~ a, df, na.action=na.omit, ...)
+    if(any(!is.na(df[i:(i + term - 1), "b"]))) {
+      model <- lm(b ~ a, df, subset=i:(i + term - 1), na.action=na.omit, ...)
       if (all(resid(model) == 0)) {
         0
       } else {
