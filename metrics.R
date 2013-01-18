@@ -59,6 +59,20 @@ exclude.columns <- function(what, from) {
   from[,setdiff(colnames(from), colnames(what))]
 }
 
+find.constant <- function(metrics, subset=1:nrow(metrics)) {
+  ranges <- sapply(metrics[subset,], function(v) {
+    range(v, na.rm=TRUE)
+  })    
+  metrics[,ranges[1,] == ranges[2,]]
+}
+
+find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
+  p.values <- sapply(metrics, function(v) {
+    shapiro.test(as.numeric(v[subset]))$p.value
+  })
+  metrics[,p.values > p.value]
+}
+
 find.maximum <- function(x, smooth = 10, n = 5) {
   smoothed <- runmean(x, smooth)
   maximum.loc <- unique(
