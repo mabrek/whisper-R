@@ -60,38 +60,6 @@ exclude.columns <- function(what, from) {
   from[,setdiff(colnames(from), colnames(what))]
 }
 
-linear.score.vector <- function (x, y, term = 30, ...) {
-  if(missing(y)) {
-    df <- data.frame(a = 1:length(x), b = x)
-  } else {
-    df <- data.frame(a = x, b = y)
-  }
-  score <- sapply(1:(length(x) - term), function(i) {
-    if(any(!is.na(df[i:(i + term - 1), "b"]))) {
-      model <- lm(b ~ a, df, subset=i:(i + term - 1), na.action=na.omit, ...)
-      if (all(resid(model) == 0)) {
-        0
-      } else {
-        1 - summary(model)$adj.r.squared
-      }
-    } else {
-      NA
-    }
-  })
-  c(rep(NA, round(term/2)),
-    scale(score, center=TRUE, scale=FALSE)[,1],
-    rep(NA, term - round(term/2)))
-}   
-
-linear.score <- function(metrics, ...) {
-  rel.time <- get.relative.time(metrics)
-  lsv <- function(y) {
-    linear.score.vector(rel.time, y, ...)
-  }
-  scored <- mclapply(metrics, lsv, mc.allow.recursive = FALSE)
-  as.data.frame(scored)
-}
-
 find.maximum <- function(x, smooth = 10, n = 5) {
   smoothed <- runmean(x, smooth)
   maximum.loc <- unique(
