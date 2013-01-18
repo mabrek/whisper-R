@@ -52,7 +52,10 @@ get.relative.time <- function(metrics) {
 }
 
 find.correlated <- function(x, metrics, subset=1:nrow(metrics)) {
-  metrics[,which(abs(cor(as.numeric(x[subset]), metrics[subset,])) > 0.9)]
+  correlation <- abs(cor(as.numeric(x[subset]), metrics[subset,],
+                         use="pairwise.complete.obs"))
+  indices <- order(correlation, decreasing=TRUE)
+  metrics[, indices[correlation[indices] > 0.9  & !is.na(correlation[indices])]]
 }
 
 exclude.columns <- function(what, from) {
