@@ -66,6 +66,10 @@ find.constant <- function(metrics, subset=1:nrow(metrics)) {
   metrics[,ranges[1,] == ranges[2,]]
 }
 
+find.na <- function(metrics, subset=1:nrow(metrics)) {
+  metrics[,which(sapply(metrics[subset,], function(v) {all(is.na(v))}))]
+}
+
 find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
   p.values <- sapply(metrics, function(v) {
     shapiro.test(as.numeric(v[subset]))$p.value
