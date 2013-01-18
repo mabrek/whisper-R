@@ -51,9 +51,8 @@ get.relative.time <- function(metrics) {
   index(metrics) - min(index(metrics))
 }
 
-find.linear <- function(metrics, subset) {
-  rel.time <- get.relative.time(metrics[subset,])
-  metrics[,which(abs(cor(as.numeric(rel.time), metrics[subset,])) > 0.9)]
+find.correlated <- function(x, y, subset) {
+  y[,which(abs(cor(as.numeric(x[subset]), y[subset,])) > 0.9)]
 }
 
 exclude.columns <- function(what, from) {
