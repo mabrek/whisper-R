@@ -1,5 +1,4 @@
 library(plyr)
-library(caTools)
 library(parallel)
 library(zoo)
 
@@ -78,29 +77,4 @@ find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
     shapiro.test(as.numeric(v[subset]))$p.value
   })
   metrics[,p.values > p.value]
-}
-
-find.maximum <- function(x, smooth = 10, n = 5) {
-  smoothed <- runmean(x, smooth)
-  maximum.loc <- unique(
-    c(which(diff(sign(diff(smoothed))) == -2),
-      which.max(smoothed)))
-  top.maximum.loc <- maximum.loc[head(order(smoothed[maximum.loc], decreasing=TRUE), n=n)]
-  top.maximum <- smoothed[top.maximum.loc]
-  cbind(top.maximum.loc, top.maximum)
-}
-
-compose.maximum <- function(scored, time.axis, ...) {
-  rbind.fill(mclapply(colnames(scored), function(x) {
-    maximum <- find.maximum(scored[[x]], ...)
-    if (length(maximum) == 0) {
-      data.frame()
-    } else {
-      data.frame(name=x, time=time.axis[maximum[,1]], maximum=maximum[,2])
-    }
-  }))
-}
-
-top.maximum <- function(composed, n=50) {
-  composed[head(order(composed$maximum, decreasing=TRUE), n=n),]
 }
