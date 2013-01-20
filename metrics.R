@@ -87,4 +87,8 @@ find.changed.sd <- function(metrics, a, b, n=25) {
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
   metrics[,tail(order(sd.b/sd.a, decreasing=FALSE, na.last=FALSE), n)]
 }
+
+multiplot <- function(metrics) {
+  ggplot(aes(x = Index, y = Value, group = Series, colour = Series, linetype = Series),
+         data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y")
 }
