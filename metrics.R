@@ -90,5 +90,5 @@ find.changed.sd <- function(metrics, a, b, n=25) {
 
 multiplot <- function(metrics) {
   ggplot(aes(x = Index, y = Value, group = Series, colour = Series),
-         data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y")
+         data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + opts(strip.text.y = theme_text())
 }
