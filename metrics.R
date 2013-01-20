@@ -85,6 +85,6 @@ find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
 find.changed.sd <- function(metrics, a, b, n=25) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
-  score <- abs(log(sd.b/sd.a))
-  metrics[,tail(order(score, decreasing=FALSE, na.last=FALSE), n)]
+  metrics[,tail(order(sd.b/sd.a, decreasing=FALSE, na.last=FALSE), n)]
+}
 }
