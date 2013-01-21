@@ -94,11 +94,11 @@ find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
           drop=FALSE]
 }
 
-find.changed.sd <- function(metrics, a, b, n=25) {
+find.changed.sd <- function(metrics, a, b, n=50) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
   metrics[,
-          tail(order(sd.b/sd.a, decreasing=FALSE, na.last=FALSE), n),
+          head(order(sd.b/sd.a, decreasing=TRUE, na.last=FALSE), n),
           drop=FALSE]
 }
 
