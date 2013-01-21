@@ -102,6 +102,18 @@ find.changed.sd <- function(metrics, a, b, n=50) {
           drop=FALSE]
 }
 
+find.changed.mean <- function(metrics, a, b, n=50) {
+  sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
+  mean.a <- sapply(metrics[a, ], mean, na.rm=TRUE)
+  mean.b <- sapply(metrics[b, ], mean, na.rm=TRUE)
+  metrics[,
+          head(order(abs(mean.b - mean.a)/sd.a,
+                     decreasing=TRUE,
+                     na.last=TRUE),
+               n),
+          drop=FALSE]
+}
+
 multiplot <- function(metrics) {
   ggplot(aes(x = Index, y = Value),
          data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
