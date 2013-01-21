@@ -114,6 +114,13 @@ find.changed.mean <- function(metrics, a, b, n=50) {
           drop=FALSE]
 }
 
+filter.colnames <- function(metrics, pattern) {
+  columns <- colnames(metrics)
+  metrics[,
+          grepl(pattern, colnames(metrics)),
+          drop=FALSE]
+}
+
 multiplot <- function(metrics) {
   ggplot(aes(x = Index, y = Value),
          data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
