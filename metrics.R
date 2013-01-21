@@ -98,7 +98,7 @@ find.changed.sd <- function(metrics, a, b, n=50) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
   metrics[,
-          head(order(sd.b/sd.a, decreasing=TRUE, na.last=FALSE), n),
+          head(order(sd.b/sd.a, decreasing=TRUE, na.last=TRUE), n),
           drop=FALSE]
 }
 
