@@ -39,12 +39,14 @@ filter.metrics <- function(metrics, outliers.rm = 5) {
     range(v, na.rm=TRUE)
   })
   columns <- colnames(metrics)
-  metrics[,!grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
+  metrics[,
+          !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
           & ranges[1,] != ranges[2,]
           & is.finite(ranges[1,])
           & is.finite(ranges[2,])
-          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
+          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5),
+          drop=FALSE
           ]
 }
 
@@ -56,36 +58,48 @@ find.correlated <- function(x, metrics, subset=1:nrow(metrics), threshold=0.9) {
   correlation <- abs(cor(as.numeric(x[subset]), metrics[subset,],
                          use="pairwise.complete.obs"))
   indices <- order(correlation, decreasing=TRUE)
-  metrics[, indices[correlation[indices] > threshold
-                    & !is.na(correlation[indices])]]
+  metrics[,
+          indices[correlation[indices] > threshold
+                  & !is.na(correlation[indices])],
+          drop=FALSE]
 }
 
 exclude.columns <- function(what, from) {
-  from[,setdiff(colnames(from), colnames(what))]
+  from[,
+       setdiff(colnames(from), colnames(what)),
+       drop=FALSE]
 }
 
 find.constant <- function(metrics, subset=1:nrow(metrics)) {
   ranges <- sapply(metrics[subset,], function(v) {
     range(v, na.rm=TRUE)
   })    
-  metrics[,ranges[1,] == ranges[2,]]
+  metrics[,
+          ranges[1,] == ranges[2,],
+          drop=FALSE]
 }
 
 find.na <- function(metrics, subset=1:nrow(metrics)) {
-  metrics[,which(sapply(metrics[subset,], function(v) {all(is.na(v))}))]
+  metrics[,
+          which(sapply(metrics[subset,], function(v) {all(is.na(v))})),
+          drop=FALSE]
 }
 
 find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
   p.values <- sapply(metrics, function(v) {
     shapiro.test(as.numeric(v[subset]))$p.value
   })
-  metrics[,p.values > p.value]
+  metrics[,
+          p.values > p.value,
+          drop=FALSE]
 }
 
 find.changed.sd <- function(metrics, a, b, n=25) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
-  metrics[,tail(order(sd.b/sd.a, decreasing=FALSE, na.last=FALSE), n)]
+  metrics[,
+          tail(order(sd.b/sd.a, decreasing=FALSE, na.last=FALSE), n),
+          drop=FALSE]
 }
 
 multiplot <- function(metrics) {
