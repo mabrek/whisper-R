@@ -33,20 +33,24 @@ get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
-filter.metrics <- function(metrics, outliers.rm = 5) {
-  ranges <- sapply(metrics, function(v) {
-    m <- mean(v, na.rm=TRUE)
-    v[tail(order(abs(v - m), na.last=FALSE), outliers.rm)] <- NA
+# TODO specify outliers.rm as proportion of values
+filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.01) {
+  means <- sapply(metrics, mean, na.rm=TRUE)
+  sds <- sapply(metrics, sd, na.rm=TRUE)
+  columns <- colnames(metrics)
+  ranges <- sapply(columns, function(n) {
+    v <- metrics[,n]
+    v[tail(order(abs(v - means[n]), na.last=FALSE), outliers.rm)] <- NA
     range(v, na.rm=TRUE)
   })
-  columns <- colnames(metrics)
   metrics[,
           !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
           & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
           & ranges[1,] != ranges[2,]
           & is.finite(ranges[1,])
           & is.finite(ranges[2,])
-          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5),
+          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
+          & abs(sds/means) > change.threshold,
           drop=FALSE
           ]
 }
