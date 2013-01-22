@@ -126,17 +126,23 @@ multiplot <- function(metrics) {
          data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
 }
 
-find.anomalies <- function(metrics, ...) {
+find.anomalies <- function(metrics, segment = 0.25) {
   rel.time <- get.relative.time(metrics)
   ind <- index(metrics)
   df <- as.data.frame(metrics)
-  result <- rbind.fill(mclapply(colnames(metrics), function(v) {
-    bp <- breakpoints(df[,v] ~ rel.time, ...)$breakpoints
-    if (is.na(bp)) {
+  bpl <- mclapply(colnames(metrics), function(v) {
+    if ((segment < 1 & floor(segment * length(na.omit(df[,v]))) <= 2)
+        | segment > 1) {
       data.frame()
     } else {
-      data.frame(name=v, time=ind[bp])
+      bp <- breakpoints(df[,v] ~ rel.time, h=segment)$breakpoints
+      if (is.na(bp)) {
+        data.frame()
+      } else {
+        data.frame(name=v, time=ind[bp])
+      }
     }
-  }))
+  })
+  result <- rbind.fill(bpl)
   result[order(result$time),]
 }
