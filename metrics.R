@@ -3,6 +3,7 @@ library(parallel)
 library(zoo)
 library(ggplot2)
 library(scales)
+library(strucchange)
 
 read.file <- function(file.name) {
   read.zoo(
