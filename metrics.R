@@ -90,15 +90,6 @@ find.na <- function(metrics, subset=1:nrow(metrics)) {
           drop=FALSE]
 }
 
-find.normal <- function(metrics, subset=1:nrow(metrics), p.value=0.1) {
-  p.values <- sapply(metrics, function(v) {
-    shapiro.test(as.numeric(v[subset]))$p.value
-  })
-  metrics[,
-          p.values > p.value,
-          drop=FALSE]
-}
-
 find.changed.sd <- function(metrics, a, b, n=50) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
