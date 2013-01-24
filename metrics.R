@@ -35,17 +35,31 @@ get.distance <- function(correlated) {
 
 # TODO specify outliers.rm as proportion of values
 filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.01) {
+  columns <- colnames(metrics)
+  cpu.re <- "\\.cpu\\.(softirq|steal|system|user|wait)\\.value$"
+  cpu.columns <- grep(cpu.re, columns, value=TRUE)
+  cpu.group.replace <- function(n) {
+    sub("^(.*)\\.cpu\\.[[:digit:]]+\\.(.*)$", "\\1.\\2", n)
+  }
+  cpu.group.columns <- unique(cpu.group.replace(cpu.columns))
+  metrics <- merge(metrics, zoo(array(0, c(1, length(cpu.group.columns)),
+                                      list(NULL, cpu.group.columns)),
+                                index(metrics)))
+  for(n in cpu.columns) {
+    g <- cpu.group.replace(n)
+    metrics[, g] <- metrics[, g] + metrics[, n]
+  }
+  columns <- colnames(metrics) # columns were changed
   means <- sapply(metrics, mean, na.rm=TRUE)
   sds <- sapply(metrics, sd, na.rm=TRUE)
-  columns <- colnames(metrics)
   ranges <- sapply(columns, function(n) {
     v <- metrics[,n]
     v[tail(order(abs(v - means[n]), na.last=FALSE), outliers.rm)] <- NA
     range(v, na.rm=TRUE)
   })
   metrics[,
-          !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$", columns)
-          & (!grepl("cpu\\.(softirq|steal|system|user|wait)\\.value$", columns) | ranges[2,] > 2)
+          !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|cpu\\.idle\\.value$|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.", columns)
+          & (!grepl(cpu.re, columns) | ranges[2,] > 5)
           & ranges[1,] != ranges[2,]
           & is.finite(ranges[1,])
           & is.finite(ranges[2,])
