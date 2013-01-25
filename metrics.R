@@ -34,6 +34,7 @@ get.distance <- function(correlated) {
 }
 
 # TODO specify outliers.rm as proportion of values
+# TODO profile and speed up
 filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.01) {
   cpu.re <- "\\.cpu\\.(softirq|steal|system|user|wait)\\.value$"
   cpu.columns <- grep(cpu.re, colnames(metrics), value=TRUE)
