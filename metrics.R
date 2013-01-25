@@ -134,7 +134,7 @@ multiplot <- function(metrics) {
          data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
 }
 
-find.anomalies <- function(metrics, segment = 0.25) {
+find.breakpoints <- function(metrics, segment = 0.25) {
   rel.time <- get.relative.time(metrics)
   ind <- index(metrics)
   df <- as.data.frame(metrics)
