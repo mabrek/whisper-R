@@ -54,11 +54,12 @@ filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.01) {
                      !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
+  medians <- sapply(metrics, median, na.rm=TRUE)
   means <- sapply(metrics, mean, na.rm=TRUE)
   sds <- sapply(metrics, sd, na.rm=TRUE)
   ranges <- sapply(columns, function(n) {
     v <- metrics[,n]
-    v[tail(order(abs(v - means[n]), na.last=FALSE), outliers.rm)] <- NA
+    v[tail(order(abs(v - medians[n]), na.last=FALSE), outliers.rm)] <- NA
     range(v, na.rm=TRUE)
   })
   metrics[,
