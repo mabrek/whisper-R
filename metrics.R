@@ -4,6 +4,7 @@ library(zoo)
 library(ggplot2)
 library(scales)
 library(strucchange)
+library(cpm)
 
 read.file <- function(file.name) {
   read.zoo(
@@ -166,6 +167,13 @@ detrend <- function(metrics) {
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
 
-find.distribution.change <- function(metrics) {
-  
+find.distribution.change <- function(metrics, cpmType="Cramer-von-Mises", ARL0=370, startup=20) {
+  ind <- index(metrics)
+  df <- as.data.frame(metrics)
+  cpl <- lapply(colnames(df), function(n) {
+    cp <- processStream(df[,n], cpmType, ARL0, startup)$changePoints
+    data.frame(name=n, time=ind[cp])
+  })
+  result <- rbind.fill(cpl)
+  result[order(result$time),]
 }
