@@ -162,3 +162,7 @@ detrend <- function(metrics) {
   metrics[, trend.cols] <- diff(metrics[, trend.cols, drop=FALSE], na.pad=TRUE)
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
+
+find.distribution.change <- function(metrics) {
+  
+}
