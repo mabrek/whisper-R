@@ -168,12 +168,19 @@ detrend <- function(metrics) {
 }
 
 find.distribution.change <- function(metrics, cpmType="Cramer-von-Mises", ARL0=370, startup=20) {
-  ind <- index(metrics)
-  df <- as.data.frame(metrics)
-  cpl <- lapply(colnames(df), function(n) {
-    cp <- processStream(df[,n], cpmType, ARL0, startup)$changePoints
-    data.frame(name=n, time=ind[cp])
+  cpl <- lapply(colnames(metrics), function(n) {
+    m <- na.omit(metrics[,n])
+    cp <- processStream(coredata(m), cpmType, ARL0, startup)$changePoints
+    if (length(cp) > 0) {
+      data.frame(name=n, time=index(m)[cp])
+    } else {
+      data.frame()
+    }
   })
   result <- rbind.fill(cpl)
-  result[order(result$time),]
+  if(!is.null(result)) {
+    result[order(result[,"time",drop=FALSE]),]
+  } else {
+    result
+  }
 }
