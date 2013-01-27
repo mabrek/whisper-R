@@ -162,7 +162,7 @@ find.breakpoints <- function(metrics, segment = 0.25) {
 
 detrend <- function(metrics) {
   columns <- colnames(metrics)
-  trend.cols <- grep("\\.memory\\.memory\\.|\\.vmstats\\.memory\\.",
+  trend.cols <- grep("\\.memory\\.memory\\.|\\.vmstats\\.memory\\.|\\.vmem\\.vmpage_number\\.",
                      columns, value=TRUE)
   metrics[, trend.cols] <- diff(metrics[, trend.cols, drop=FALSE], na.pad=TRUE)
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
