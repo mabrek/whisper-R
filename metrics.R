@@ -169,7 +169,7 @@ detrend <- function(metrics) {
 }
 
 find.distribution.change <- function(metrics, cpmType="Cramer-von-Mises", ARL0=370, startup=20) {
-  cpl <- lapply(colnames(metrics), function(n) {
+  cpl <- mclapply(colnames(metrics), function(n) {
     m <- na.omit(metrics[,n])
     cp <- processStream(coredata(m), cpmType, ARL0, startup)$changePoints
     if (length(cp) > 0) {
