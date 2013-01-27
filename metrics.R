@@ -68,7 +68,9 @@ filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.01) {
           & is.finite(ranges[1,])
           & is.finite(ranges[2,])
           & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
-          & abs(sds/means) > change.threshold,
+          & abs(sds/means) > change.threshold
+          & (!grepl("if_octets", columns) | ranges[2,] > 1000)
+          & (!grepl("if_packets", columns) | ranges[2,] > 10),
           drop=FALSE
           ]
 }
