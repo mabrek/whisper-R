@@ -172,21 +172,14 @@ detrend <- function(metrics) {
 }
 
 find.distribution.change <- function(metrics, cpmType="Cramer-von-Mises", ARL0=50000, startup=50) {
-  cpl <- mclapply(colnames(metrics), function(n) {
+  cpl <- simplify2array(mclapply(colnames(metrics), function(n) {
     m <- na.omit(metrics[,n])
-    cp <- processStream(coredata(m), cpmType, ARL0, startup)$changePoints
-    if (length(cp) > 0) {
-      data.frame(name=n, time=index(m)[cp])
-    } else {
-      data.frame()
-    }
-  })
-  result <- rbind.fill(cpl)
-  if(!is.null(result)) {
-    result[order(result[,"time",drop=FALSE]),]
-  } else {
-    result
-  }
+    length(processStream(coredata(m), cpmType, ARL0, startup)$changePoints)
+  }))
+  indices <- order(cpl, decreasing=FALSE)
+  metrics[,
+          indices[cpl[indices] > 0],
+          drop=FALSE]
 }
 
 find.nonlinear <- function(metrics, subset=1:nrow(metrics)) {
