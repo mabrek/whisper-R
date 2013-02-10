@@ -5,6 +5,7 @@ library(ggplot2)
 library(scales)
 library(strucchange)
 library(cpm)
+library(forecast)
 
 read.file <- function(file.name) {
   read.zoo(
@@ -186,4 +187,12 @@ find.distribution.change <- function(metrics, cpmType="Cramer-von-Mises", ARL0=5
   } else {
     result
   }
+}
+
+find.nonlinear <- function(metrics, subset=1:nrow(metrics)) {
+  diffs <- simplify2array(mclapply(metrics[subset,], ndiffs))
+  indices <- order(diffs, decreasing=TRUE)
+  metrics[,
+          indices[diffs[indices] > 1],
+          drop=FALSE]
 }
