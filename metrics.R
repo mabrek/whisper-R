@@ -18,7 +18,14 @@ read.file <- function(file.name) {
 }
 
 load.metrics <- function(path=".") {
-  do.call(merge.zoo, lapply(list.files(path, full.names=TRUE), read.file))
+  Reduce(
+    function(a, b) {
+      if (class(a) == "character") {
+        a <- read.file(a)
+      }
+      merge.zoo(a, read.file(b))
+    },
+    list.files(path, full.names=TRUE))
 }
 
 set.cores <- function(cores = detectCores()) {
