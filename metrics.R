@@ -21,7 +21,13 @@ load.metrics <- function(path=".") {
       if (class(a) == "character") {
         a <- read.file(a)
       }
-      merge.zoo(a, read.file(b))
+      b <- read.file(b)
+      if (identical(a$time, b$time)) {
+        cbind(a, b[,2,drop=FALSE])
+      } else {
+        warning("skipping file with different time ", colnames(b)[2])
+        a
+      }
     },
     list.files(path, full.names=TRUE))
 }
