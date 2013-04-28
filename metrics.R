@@ -21,7 +21,7 @@ read.file <- function(file.name) {
 load.metrics <- function(path=".") {
   Reduce(
     function(a, b) {
-      if (class(a) == "character") {
+      if (class(a)[1] == "character") {
         a <- read.file(a)
       }
       merge.xts(a, read.file(b))
