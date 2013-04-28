@@ -19,14 +19,17 @@ read.file <- function(file.name) {
 }
 
 load.metrics <- function(path=".") {
-  Reduce(
-    function(a, b) {
-      if (class(a)[1] == "character") {
-        a <- read.file(a)
-      }
-      merge.xts(a, read.file(b))
-    },
-    list.files(path, full.names=TRUE))
+  merge.files(list.files(path, full.names=TRUE))
+}
+
+merge.files <- function(files) {
+  k <- length(files)
+  if (k == 1) {
+    read.file(files[1])
+  } else if (k > 1) {
+    merge.xts(merge.files(files[1 : (k %/% 2)]),
+              merge.files(files[(k %/% 2 + 1) : k]))
+  }
 }
 
 set.cores <- function(cores = detectCores()) {
