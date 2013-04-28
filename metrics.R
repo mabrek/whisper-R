@@ -6,22 +6,28 @@ library(scales)
 library(strucchange)
 library(cpm)
 library(forecast)
+library(data.table)
 
 read.file <- function(file.name) {
-  read.table(
-    file.name,
-    na.strings="None",
-    colClasses=c("integer", "numeric"),
-    col.names=c("time", basename(file.name)))
+  setkey(
+    data.table(
+      read.table(
+        file.name,
+        na.strings="None",
+        colClasses=c("integer", "numeric"),
+        col.names=c("time", basename(file.name)))
+      ),
+    time
+    )
 }
 
 load.metrics <- function(path=".") {
   Reduce(
     function(a, b) {
-      if (class(a) == "character") {
+      if (class(a)[1] == "character") {
         a <- read.file(a)
       }
-      merge.zoo(a, read.file(b))
+      merge(a, read.file(b), by="time", all=TRUE)
     },
     list.files(path, full.names=TRUE))
 }
