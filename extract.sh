@@ -12,7 +12,7 @@ then
   GRAPHITE_STORAGE_DIR="${GRAPHITE_ROOT}/storage"
 fi
 
-
+# TODO needs to be a script argument
 WHISPER_DIR="${GRAPHITE_STORAGE_DIR}/whisper"
 
 if [ ! -d "$WHISPER_DIR" ]
