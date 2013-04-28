@@ -3,3 +3,6 @@ set correct number of cores before runnning via set.cores()
 find range in file:
 whisper-dump.py collectd/host/cpu-0/cpu-user/value.wsp | grep -E '^[[:digit:]]+'| cut -f 2 -d ' ' | sort -n | head
 whisper-dump.py collectd/host/cpu-0/cpu-user/value.wsp | grep -E '^[[:digit:]]+'| cut -f 2 -d ' ' | sort -n | tail
+
+TODO:
+    parallel extract.sh
