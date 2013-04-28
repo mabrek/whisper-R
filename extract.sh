@@ -21,11 +21,13 @@ then
   exit 1
 fi
 
+export PYTHONPATH=/data/work/sources/whisper
+
 cd $WHISPER_DIR
 WSPS=`find -L . -name '*.wsp'`
 for WSP in $WSPS; 
 do
     DATA=`echo $WSP | perl -pe 's!^[^/]+/(.+)\.wsp$!$1!; s!/!.!g'`;
     # TODO realpath $3
-    whisper-fetch.py --from=$1 --until=$2 $WSP > $3/$DATA
+    /data/work/sources/whisper/bin/whisper-fetch.py --from=$1 --until=$2 $WSP > $3/$DATA
 done
