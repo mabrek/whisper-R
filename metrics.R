@@ -65,9 +65,9 @@ filter.metrics <- function(metrics, change.threshold=0.05) {
                      !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
-  means <- sapply(metrics, mean, na.rm=TRUE)
-  sds <- sapply(metrics, sd, na.rm=TRUE)
-  ranges <- sapply(metrics, range, na.rm=TRUE)
+  means <- apply(metrics, 2, mean, na.rm=TRUE)
+  sds <- apply(metrics, 2, sd, na.rm=TRUE)
+  ranges <- apply(metrics, 2, range, na.rm=TRUE)
   metrics[,
           (!grepl("\\.cpu\\.[[:alpha:]]+\\.value$", columns) | ranges[2,] > 5)
           & ranges[1,] != ranges[2,]
