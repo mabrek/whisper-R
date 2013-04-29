@@ -46,9 +46,8 @@ get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
-# TODO specify outliers.rm as proportion of values
 # TODO profile and speed up
-filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.05) {
+filter.metrics <- function(metrics, change.threshold=0.05) {
   cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait)\\.value$",
                       colnames(metrics),
                       value=TRUE)
@@ -66,14 +65,9 @@ filter.metrics <- function(metrics, outliers.rm = 5, change.threshold=0.05) {
                      !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
-  medians <- sapply(metrics, median, na.rm=TRUE)
   means <- sapply(metrics, mean, na.rm=TRUE)
   sds <- sapply(metrics, sd, na.rm=TRUE)
-  ranges <- sapply(columns, function(n) {
-    v <- metrics[,n]
-    v[tail(order(abs(v - medians[n]), na.last=FALSE), outliers.rm)] <- NA
-    range(v, na.rm=TRUE)
-  })
+  ranges <- sapply(metrics, range, na.rm=TRUE)
   metrics[,
           (!grepl("\\.cpu\\.[[:alpha:]]+\\.value$", columns) | ranges[2,] > 5)
           & ranges[1,] != ranges[2,]
