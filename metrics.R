@@ -46,7 +46,6 @@ get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
-# TODO profile and speed up
 filter.metrics <- function(metrics, change.threshold=0.05) {
   cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait)\\.value$",
                       colnames(metrics),
