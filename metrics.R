@@ -193,3 +193,14 @@ find.nonlinear <- function(metrics, subset=1:nrow(metrics)) {
           indices[diffs[indices] > 1],
           drop=FALSE]
 }
+
+find.independent <- function(metrics, subset=1:nrow(metrics), lag=10, p.value=0.05, threshold=100) {
+  ac <- simplify2array(lapply(metrics[subset,], function(m) {
+    bt <- Box.test(m, lag=lag)
+    c(bt$statistic, bt$p.value)
+  }))
+  indices <- order(ac[1,])
+  metrics[,
+          indices[ac[1,indices] < threshold & ac[2, indices] < p.value],
+          drop=FALSE]
+}
