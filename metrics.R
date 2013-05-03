@@ -54,7 +54,7 @@ filter.metrics <- function(metrics, change.threshold=0.05) {
            sub("^(.*)\\.cpu\\.[[:digit:]]+\\.(.*)$", "\\1.\\2", cpu.columns),
            c),
     function(cl) {
-      rowSums(metrics[,cl,drop=FALSE])
+      rowSums(metrics[,cl,drop=FALSE], na.rm=TRUE)
     })
   if (length(cpu.sums) > 0) {
     metrics <- cbind(metrics, cpu.sums)
