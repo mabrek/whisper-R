@@ -6,16 +6,15 @@ library(scales)
 library(strucchange)
 library(cpm)
 library(forecast)
-library(xts)
 
 read.file <- function(file.name) {
-  as.xts(read.zoo(
+  read.zoo(
     file.name,
     na.strings="None",
     colClasses=c("integer", "numeric"),
     col.names=c("time", basename(file.name)),
     FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00.00", tz="UTC")},
-    drop=FALSE))
+    drop=FALSE)
 }
 
 load.metrics <- function(path=".") {
@@ -27,7 +26,7 @@ merge.files <- function(files) {
   if (k == 1) {
     read.file(files[1])
   } else if (k > 1) {
-    merge.xts(merge.files(files[1 : (k %/% 2)]),
+    merge.zoo(merge.files(files[1 : (k %/% 2)]),
               merge.files(files[(k %/% 2 + 1) : k]))
   }
 }
