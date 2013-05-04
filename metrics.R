@@ -194,13 +194,13 @@ find.nonlinear <- function(metrics, subset=1:nrow(metrics)) {
           drop=FALSE]
 }
 
-find.independent <- function(metrics, subset=1:nrow(metrics), lag=10, p.value=0.05, threshold=100) {
-  ac <- simplify2array(lapply(metrics[subset,], function(m) {
-    bt <- Box.test(m, lag=lag)
+find.autocorrelated <- function(metrics, subset=1:nrow(metrics), lag=100, p.value=0.05) {
+  ac <- simplify2array(mclapply(metrics[subset,], function(m) {
+    bt <- Box.test(m, lag=lag, type="Ljung-Box")
     c(bt$statistic, bt$p.value)
   }))
-  indices <- na.exclude(order(ac[1,]))
+  indices <- na.exclude(order(ac[1,], decreasing=TRUE))
   metrics[,
-          indices[ac[1,indices] < threshold & ac[2, indices] < p.value],
+          na.exclude(indices[ac[2,indices] < p.value]),
           drop=FALSE]
 }
