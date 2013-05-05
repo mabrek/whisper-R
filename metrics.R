@@ -142,8 +142,11 @@ filter.colnames <- function(pattern, metrics, invert=FALSE) {
 }
 
 multiplot <- function(metrics) {
+  data <- metrics[,
+                  which(sapply(metrics[], function(v) {all(!is.na(v))})),
+                  drop=FALSE]
   ggplot(aes(x = Index, y = Value),
-         data = fortify(metrics, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+         data = fortify(data, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
 }
 
 find.breakpoints <- function(metrics, segment = 0.25) {
