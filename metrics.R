@@ -42,21 +42,20 @@ get.correlation.distance <- function(x) {
   as.dist(1-abs(correlated))
 }
 
-# TODO filter.distance
-filter.correlated <- function(metrics, correlated, complete=0.1) {
-  #TODO vectorise
+filter.distance <- function(d, metrics, complete=0.1, max.dist=1) {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
-  for (i in 1:ncol(metrics)) {
-    for (j in i:ncol(metrics)) {
+  n <- ncol(metrics)
+  #TODO vectorise
+  for (i in 1:n) {
+    for (j in i:n) {
       if (j != i
-          & (sum(complete.cases(metrics[,i], metrics[,j]))
-             / max(counts[i], counts[j])) < complete) {
-        correlated[i,j] <- 0
-        correlated[j,i] <- 0
+          && (sum(complete.cases(metrics[,i], metrics[,j]))
+              / max(counts[i], counts[j])) < complete) {
+        d[n*(i-1) - i*(i-1)/2 + j-i] <- max.dist
       }
     }
   }
-  correlated
+  d
 }
 
 filter.metrics <- function(metrics, change.threshold=0.05) {
