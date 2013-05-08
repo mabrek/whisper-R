@@ -36,13 +36,9 @@ set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-correlate <- function(x) {
+get.correlation.distance <- function(x) {
   correlated <- cor(x, use="pairwise.complete.obs")
   correlated[is.na(correlated)] <- 0
-  correlated
-}
-
-get.distance <- function(correlated) {
   as.dist(1-abs(correlated))
 }
 
