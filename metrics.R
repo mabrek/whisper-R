@@ -7,6 +7,8 @@ library(strucchange)
 library(cpm)
 library(forecast)
 library(xts)
+library(cluster)
+library(fpc)
 
 read.file <- function(file.name) {
   as.xts(read.zoo(
