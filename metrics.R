@@ -42,14 +42,15 @@ get.correlation.distance <- function(x) {
   as.dist(1-abs(correlated))
 }
 
+# TODO filter.distance
 filter.correlated <- function(metrics, correlated, complete=0.1) {
   #TODO vectorise
+  counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   for (i in 1:ncol(metrics)) {
     for (j in i:ncol(metrics)) {
       if (j != i
           & (sum(complete.cases(metrics[,i], metrics[,j]))
-             /max(sum(!is.na(metrics[,i])),
-                  sum(!is.na(metrics[,j])))) < complete) {
+             / max(counts[i], counts[j])) < complete) {
         correlated[i,j] <- 0
         correlated[j,i] <- 0
       }
