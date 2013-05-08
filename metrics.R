@@ -61,7 +61,7 @@ filter.metrics <- function(metrics, change.threshold=0.05) {
     metrics <- cbind(metrics, cpu.sums)
   }
   metrics <- metrics[,
-                     !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.", colnames(metrics)),
+                     !grepl("upper(_50|_90|_99)$|sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
   means <- apply(metrics, 2, mean, na.rm=TRUE)
