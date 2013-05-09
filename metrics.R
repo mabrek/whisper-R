@@ -240,7 +240,7 @@ find.autocorrelated <- function(metrics, subset=1:nrow(metrics), lag=100, p.valu
 }
 
 plot.medoids <- function(metrics, pamobject, limit=50) {
-  sorted <- order(pamobject$silinfo$clus.avg.widths, decreasing=TRUE)
+  sorted <- order(pamobject$silinfo$clus.avg.widths * pamobject$clusinfo[, "size"], decreasing=TRUE)
   sorted <- sorted[which(pamobject$clusinfo[sorted, "size"] > 1)]
   data <- metrics[,
                   pamobject$medoids[sorted],
