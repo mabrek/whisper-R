@@ -247,7 +247,7 @@ plot.medoids <- function(metrics, pamobject, limit=50) {
                   drop=FALSE]
   colnames(data) <- paste("[", sorted, "]",
                           pamobject$medoids[sorted],
-                          pamobject$clusinfo[,1])
+                          pamobject$clusinfo[sorted, "size"])
   multiplot(data, limit)
 }
 
