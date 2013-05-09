@@ -155,12 +155,29 @@ filter.colnames <- function(pattern, metrics, invert=FALSE) {
           drop=FALSE]
 }
 
-multiplot <- function(metrics) {
+multiplot <- function(metrics, limit=50) {
   data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
                   drop=FALSE]
-  ggplot(aes(x = Index, y = Value),
-         data = fortify(data, melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+  n <- ncol(data)
+  i <- 1
+  k <- min(n, limit)
+  repeat {
+    p <- ggplot(aes(x = Index, y = Value),
+                data = fortify(data[, i:k, drop=FALSE], melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+    print(p)
+    if (k >= n) {
+      break
+    } else {
+      choice <- readline("empty line to continue, anything else to stop :")
+      if (choice == "") {
+        i <- i + limit
+        k <- min(n, k + limit)
+      } else {
+        break
+      }
+    }
+  }
 }
 
 find.breakpoints <- function(metrics, segment = 0.25) {
