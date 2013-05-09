@@ -238,3 +238,15 @@ find.autocorrelated <- function(metrics, subset=1:nrow(metrics), lag=100, p.valu
           na.exclude(indices[ac[2,indices] < p.value]),
           drop=FALSE]
 }
+
+plot.medoids <- function(metrics, pamobject, limit=50) {
+  sorted <- order(pamobject$silinfo$clus.avg.widths, decreasing=TRUE)
+  sorted <- sorted[which(pamobject$clusinfo[sorted, "size"] > 1)]
+  data <- metrics[,
+                  pamobject$medoids[sorted],
+                  drop=FALSE]
+  colnames(data) <- paste("[", sorted, "]",
+                          pamobject$medoids[sorted],
+                          pamobject$clusinfo[,1])
+  multiplot(data, limit)
+}
