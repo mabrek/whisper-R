@@ -250,3 +250,10 @@ plot.medoids <- function(metrics, pamobject, limit=50) {
                           pamobject$clusinfo[,1])
   multiplot(data, limit)
 }
+
+plot.cluster <- function(id, metrics, pamobject, limit=50) {
+  multiplot(metrics[,
+                    names(which(pamobject$clustering == id)),
+                    drop=FALSE],
+            limit)
+}
