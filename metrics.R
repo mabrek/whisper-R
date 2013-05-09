@@ -39,7 +39,7 @@ set.cores <- function(cores = detectCores()) {
 }
 
 get.correlation.distance <- function(x) {
-  correlated <- cor(x, use="pairwise.complete.obs")
+  correlated <- cor(x, use="pairwise.complete.obs", method="spearman")
   correlated[is.na(correlated)] <- 0
   as.dist(1-abs(correlated))
 }
@@ -100,7 +100,7 @@ get.relative.time <- function(metrics) {
 
 find.correlated <- function(x, metrics, subset=1:nrow(metrics), threshold=0.9) {
   correlation <- abs(cor(as.numeric(x[subset]), metrics[subset,],
-                         use="pairwise.complete.obs"))
+                         use="pairwise.complete.obs", method="spearman"))
   indices <- order(correlation, decreasing=TRUE)
   metrics[,
           indices[correlation[indices] > threshold
