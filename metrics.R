@@ -267,5 +267,5 @@ plot.cluster <- function(metrics, pamobject, id, limit=50) {
 }
 
 par.pam <- function(d, krange) {
-  simplify2array(mclapply(krange, function(k) {pam(d, k, diss=TRUE)}))
+  mclapply(krange, function(k) {pam(d, k, diss=TRUE)})
 }
