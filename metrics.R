@@ -51,6 +51,8 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
         x2 <- x2[ok]
         y2 <- y2[ok]
         r[i, j] <- cor(x2, y2, method=method)
+        if (is.na(r[i, j]))
+          r[i, j] <- 0
       }
     }
   }
