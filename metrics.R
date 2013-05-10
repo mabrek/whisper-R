@@ -258,3 +258,7 @@ plot.cluster <- function(id, metrics, pamobject, limit=50) {
                     drop=FALSE],
             limit)
 }
+
+par.pam <- function(d, krange) {
+  simplify2array(mclapply(krange, function(k) {pam(d, k, diss=TRUE)}))
+}
