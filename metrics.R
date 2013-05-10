@@ -48,8 +48,8 @@ get.correlation.distance <- function(metrics, complete=0.1) {
       y2 <- metrics[, j]
       ok <- complete.cases(x2, y2)
       if ((sum(ok) / max(counts[i], counts[j])) > complete) {
-        x2 <- rank(x2[ok])
-        y2 <- rank(y2[ok])
+        x2 <- rank(coredata(x2[ok]))
+        y2 <- rank(coredata(y2[ok]))
         r[i, j] <- .Internal(cor(x2, y2, 1L, FALSE))
       }
     }
