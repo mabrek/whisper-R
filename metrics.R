@@ -38,26 +38,26 @@ set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-get.correlation.distance <- function(x) {
-  correlated <- cor(x, use="pairwise.complete.obs", method="spearman")
-  correlated[is.na(correlated)] <- 0
-  as.dist(1-abs(correlated))
-}
-
-filter.distance <- function(d, metrics, complete=0.1, max.dist=1) {
+get.correlation.distance <- function(metrics, complete=0.1) {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
-  #TODO vectorise
-  for (i in 1:n) {
-    for (j in i:n) {
-      if (j != i
-          && (sum(complete.cases(metrics[,i], metrics[,j]))
-              / max(counts[i], counts[j])) < complete) {
-        d[n*(i-1) - i*(i-1)/2 + j-i] <- max.dist
+  r <- matrix(0, nrow=n, ncol=n)
+  for (i in seq_len(n)) {
+    for (j in seq_len(i)) {
+      x2 <- metrics[, i]
+      y2 <- metrics[, j]
+      ok <- complete.cases(x2, y2)
+      if ((sum(ok) / max(counts[i], counts[j])) > complete) {
+        x2 <- rank(x2[ok])
+        y2 <- rank(y2[ok])
+        r[i, j] <- .Internal(cor(x2, y2, 1L, FALSE))
       }
     }
   }
-  d
+  r <- r + t(r) - diag(diag(r))
+  rownames(r) <- colnames(metrics)
+  colnames(r) <- colnames(metrics)
+  as.dist(1-abs(r))
 }
 
 filter.metrics <- function(metrics, change.threshold=0.05) {
