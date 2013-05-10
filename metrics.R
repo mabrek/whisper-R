@@ -99,8 +99,9 @@ get.relative.time <- function(metrics) {
 }
 
 find.correlated <- function(x, metrics, subset=1:nrow(metrics), threshold=0.9) {
+  #TODO filter by case completeness and use spearman method
   correlation <- abs(cor(as.numeric(x[subset]), metrics[subset,],
-                         use="pairwise.complete.obs", method="spearman"))
+                         use="pairwise.complete.obs"))
   indices <- order(correlation, decreasing=TRUE)
   metrics[,
           indices[correlation[indices] > threshold
