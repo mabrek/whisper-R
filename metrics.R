@@ -255,10 +255,15 @@ plot.medoids <- function(metrics, pamobject, limit=50) {
 }
 
 plot.cluster <- function(metrics, pamobject, id, limit=50) {
-  multiplot(metrics[,
-                    names(which(pamobject$clustering == id)),
-                    drop=FALSE],
-            limit)
+  multiplot(
+    metrics[,
+            names(
+              sort(
+                pamobject$silinfo$widths[names(which(pamobject$clustering == id)),
+                                         "sil_width"],
+                       decreasing=TRUE)),
+            drop=FALSE],
+    limit)
 }
 
 par.pam <- function(d, krange) {
