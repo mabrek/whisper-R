@@ -38,19 +38,19 @@ set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-get.correlation.distance <- function(metrics, complete=0.1) {
+get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
   r <- matrix(0, nrow=n, ncol=n)
   for (i in seq_len(n)) {
     for (j in seq_len(i)) {
-      x2 <- metrics[, i]
-      y2 <- metrics[, j]
+      x2 <- coredata(metrics[, i])
+      y2 <- coredata(metrics[, j])
       ok <- complete.cases(x2, y2)
       if ((sum(ok) / max(counts[i], counts[j])) > complete) {
-        x2 <- rank(coredata(x2[ok]))
-        y2 <- rank(coredata(y2[ok]))
-        r[i, j] <- .Internal(cor(x2, y2, 1L, FALSE))
+        x2 <- x2[ok]
+        y2 <- y2[ok]
+        r[i, j] <- cor(x2, y2, method=method)
       }
     }
   }
