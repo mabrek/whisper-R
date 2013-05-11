@@ -9,6 +9,7 @@ library(forecast)
 library(xts)
 library(cluster)
 library(fpc)
+library(utils)
 
 read.file <- function(file.name) {
   as.xts(read.zoo(
@@ -42,22 +43,27 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
   d <- coredata(metrics)
-  r <- matrix(0, nrow=n, ncol=n)
-  for (i in seq_len(n)) {
-    for (j in seq_len(i)) {
-      x2 <- d[,i]
-      y2 <- d[,j]
-      ok <- complete.cases(x2, y2)
-      if ((sum(ok) / max(counts[i], counts[j])) > complete) {
-        x2 <- x2[ok]
-        y2 <- y2[ok]
-        r[i, j] <- cor(x2, y2, method=method)
-        if (is.na(r[i, j]))
-          r[i, j] <- 0
+  rl <- mclapply(combn(n, 2, simplify=FALSE), function(ij) {
+    i <- ij[1]
+    j <- ij[2]
+    x2 <- d[,i]
+    y2 <- d[,j]
+    ok <- complete.cases(x2, y2)
+    if ((sum(ok) / max(counts[i], counts[j])) > complete) {
+      x2 <- x2[ok]
+      y2 <- y2[ok]
+      cr <- cor(x2, y2, method=method)
+      if (is.na(cr)) {
+        cr <- 0
       }
+    } else {
+      cr <- 0
     }
-  }
-  r <- r + t(r) - diag(diag(r))
+    list(i, j, cr)
+  })
+  r <- matrix(0, nrow=n, ncol=n)
+  for (ijc in rl) r[ijc[[1]], ijc[[2]]] <- ijc[[3]]
+  r <- r + t(r) + diag(n)
   rownames(r) <- colnames(metrics)
   colnames(r) <- colnames(metrics)
   as.dist(1-abs(r))
