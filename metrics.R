@@ -107,14 +107,28 @@ get.relative.time <- function(metrics) {
   index(metrics) - min(index(metrics))
 }
 
-find.correlated <- function(x, metrics, subset=1:nrow(metrics), threshold=0.9) {
-  #TODO filter by case completeness and use spearman method
-  correlation <- abs(cor(as.numeric(x[subset]), metrics[subset,],
-                         use="pairwise.complete.obs"))
-  indices <- order(correlation, decreasing=TRUE)
+find.correlated <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
+  x <- coredata(x[subset])
+  nx <- sum(!is.na(x))
+  m <- coredata(metrics[subset,])
+  correlation <- simplify2array(mclapply(1:ncol(m), function(k) {
+    y <- m[,k]
+    ok <- complete.cases(x, y)
+    if ((sum(ok) / max(nx, sum(!is.na(y)))) > complete) {
+      x2 <- x[ok]
+      y2 <- y[ok]
+      cr <- abs(cor(x2, y2, method=method))
+      if (is.na(cr)) {
+        0
+      } else {
+        cr
+      }
+    } else {
+      0
+    }
+  }))
   metrics[,
-          indices[correlation[indices] > threshold
-                  & !is.na(correlation[indices])],
+          order(correlation, decreasing=TRUE),
           drop=FALSE]
 }
 
