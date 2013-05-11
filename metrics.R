@@ -41,11 +41,12 @@ set.cores <- function(cores = detectCores()) {
 get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
+  d <- coredata(metrics)
   r <- matrix(0, nrow=n, ncol=n)
   for (i in seq_len(n)) {
     for (j in seq_len(i)) {
-      x2 <- coredata(metrics[, i])
-      y2 <- coredata(metrics[, j])
+      x2 <- d[,i]
+      y2 <- d[,j]
       ok <- complete.cases(x2, y2)
       if ((sum(ok) / max(counts[i], counts[j])) > complete) {
         x2 <- x2[ok]
