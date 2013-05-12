@@ -189,11 +189,13 @@ multiplot <- function(metrics, limit=50) {
   k <- min(n, limit)
   repeat {
     m <- data[, i:k, drop=FALSE]
+    ms <- rollapply(m, width=max(10, trunc(r/100)), FUN=median, na.rm=TRUE, fill=NA)
     df <- data.frame(index(m)[rep.int(1:r, k)],
                      factor(rep(1:k, each = r), levels = 1:k, labels = colnames(m)),
-                     as.vector(coredata(m)))
-    names(df) <- c("Index", "Series", "Value")
-    p <- ggplot(aes(x = Index, y = Value), data = df) + geom_point(shape=".")+ xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+                     as.vector(coredata(m)),
+                     as.vector(coredata(ms)))
+    names(df) <- c("Index", "Series", "Value", "Smooth")
+    p <- ggplot(data = df) + geom_point(aes(x = Index, y = Value), na.rm=TRUE, shape=".") + geom_path(aes(x = Index, y = Smooth), na.rm=TRUE, color="blue") + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
     print(p)
     if (k >= n) {
       break
