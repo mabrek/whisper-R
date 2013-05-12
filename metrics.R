@@ -188,7 +188,7 @@ multiplot <- function(metrics, limit=50) {
   k <- min(n, limit)
   repeat {
     p <- ggplot(aes(x = Index, y = Value),
-                data = fortify(data[, i:k, drop=FALSE], melt = TRUE)) + geom_line() + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+                data = fortify(data[, i:k, drop=FALSE], melt = TRUE)) + geom_point(shape=".")+ xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
     print(p)
     if (k >= n) {
       break
