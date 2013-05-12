@@ -183,12 +183,17 @@ multiplot <- function(metrics, limit=50) {
   data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
                   drop=FALSE]
+  r <- nrow(data)
   n <- ncol(data)
   i <- 1
   k <- min(n, limit)
   repeat {
-    p <- ggplot(aes(x = Index, y = Value),
-                data = fortify(data[, i:k, drop=FALSE], melt = TRUE)) + geom_point(shape=".")+ xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+    m <- data[, i:k, drop=FALSE]
+    df <- data.frame(index(m)[rep.int(1:r, k)],
+                     factor(rep(1:k, each = r), levels = 1:k, labels = colnames(m)),
+                     as.vector(coredata(m)))
+    names(df) <- c("Index", "Series", "Value")
+    p <- ggplot(aes(x = Index, y = Value), data = df) + geom_point(shape=".")+ xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
     print(p)
     if (k >= n) {
       break
