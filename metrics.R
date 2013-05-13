@@ -189,7 +189,11 @@ multiplot <- function(metrics, limit=50) {
   k <- min(n, limit)
   repeat {
     m <- data[, i:k, drop=FALSE]
-    ms <- rollapply(m, width=max(10, trunc(r/100)), FUN=mean, na.rm=TRUE, fill=NA)
+    ms <- sapply(m, function(y) {
+      ave(coredata(y),
+          seq.int(r) %/% max(10, r %/% 500),
+          FUN=function(x) {mean(x, na.rm=T)})
+    })
     df <- data.frame(index(m)[rep.int(1:r, k)],
                      factor(rep(1:k, each = r), levels = 1:k, labels = colnames(m)),
                      as.vector(coredata(m)),
