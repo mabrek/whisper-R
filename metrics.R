@@ -194,8 +194,8 @@ multiplot <- function(metrics, limit=50) {
           seq.int(r) %/% max(10, r %/% 500),
           FUN=function(x) {mean(x, na.rm=T)})
     })
-    df <- data.frame(index(m)[rep.int(1:r, k)],
-                     factor(rep(1:k, each = r), levels = 1:k, labels = colnames(m)),
+    df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
+                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = colnames(m)),
                      as.vector(coredata(m)),
                      as.vector(coredata(ms)))
     names(df) <- c("Index", "Series", "Value", "Smooth")
