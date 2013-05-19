@@ -244,14 +244,23 @@ detrend <- function(metrics) {
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
 
-find.distribution.change <- function(metrics, cpmType="Cramer-von-Mises", ARL0=50000, startup=50) {
-  cpl <- simplify2array(mclapply(colnames(metrics), function(n) {
-    m <- na.omit(metrics[,n])
-    length(processStream(coredata(m), cpmType, ARL0, startup)$changePoints)
+find.distribution.change <- function(metrics, startup=50) {
+  cpa <- simplify2array(mclapply(seq.int(ncol(metrics)), function(n) {
+    m <- na.omit(coredata(metrics[,n]))
+    a <- NA
+    for (arl in  c(seq(2000, 1000, -1000), seq(900, 500, -100), 370)) {
+      if (detectChangePoint(m, cpmType="Kolmogorov-Smirnov", arl, startup)$changePoint > 0) {
+        cat (n, " ", arl, "\n")
+        a <- arl
+        break;
+      }
+    }
+    a
   }))
-  indices <- order(cpl, decreasing=FALSE)
+  cat (cpa, "\n")
+  indices <- order(cpa, na.last=TRUE)
   metrics[,
-          indices[cpl[indices] > 0],
+          indices[!is.na(cpa[indices])],
           drop=FALSE]
 }
 
