@@ -245,7 +245,7 @@ detrend <- function(metrics) {
 }
 
 show.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05) {
-  rollapply(metric, width=2*half.width, by=by, FUN=function(w) {
+  rollapply(metric, width=2*half.width, by=by, align="center", FUN=function(w) {
     x <- na.omit(w[1:half.width])
     y <- na.omit(w[(half.width+1):(2*half.width)])
     if (length(x) >= 1 & length(y) >= 1) {
