@@ -244,22 +244,25 @@ detrend <- function(metrics) {
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
 
+show.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05) {
+  rollapply(metric, width=2*half.width, by=by, FUN=function(w) {
+    x <- na.omit(w[1:half.width])
+    y <- na.omit(w[(half.width+1):(2*half.width)])
+    if (length(x) >= 1 & length(y) >= 1) {
+      ## TODO Cramer-von-Mises instead of Kolmogorov-Smirnov
+      t <- ks.test(x, y, exact=FALSE)
+      if (t$p.value < p.value)
+        t$statistic
+      else
+        NA
+    } else
+      NA
+  })
+}
+
 find.distribution.change <- function(metrics, half.width=100, by=10, p.value = 0.05) {
   change <- simplify2array(mclapply(metrics, function(m) {
-    max(rollapply(m, width=2*half.width, by=by, FUN=function(w) {
-      x <- na.omit(w[1:half.width])
-      y <- na.omit(w[(half.width+1):(2*half.width)])
-      if (length(x) >= 1 & length(y) >= 1) {
-        ## TODO Cramer-von-Mises instead of Kolmogorov-Smirnov
-        t <- ks.test(x, y, exact=FALSE)
-        if (t$p.value < p.value)
-          t$statistic
-        else
-          NA
-      } else
-        NA
-    }),
-        na.rm=TRUE)
+    max(show.distribution.change(m, half.width=half.width, by=by, p.value=p.value), na.rm=TRUE)
   }))
   indices <- order(change, decreasing=TRUE, na.last=TRUE)
   metrics[,
