@@ -49,7 +49,8 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
     x2 <- d[,i]
     y2 <- d[,j]
     ok <- complete.cases(x2, y2)
-    if ((sum(ok) / max(counts[i], counts[j])) > complete) {
+    mc <- max(counts[i], counts[j])
+    if (mc != 0 & sum(ok)/mc > complete) {
       x2 <- x2[ok]
       y2 <- y2[ok]
       cr <- cor(x2, y2, method=method)
