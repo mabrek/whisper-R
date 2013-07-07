@@ -39,7 +39,7 @@ set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
+get.correlation.matrix <- function(metrics, complete=0.1, method="spearman") {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
   d <- coredata(metrics)
@@ -67,7 +67,11 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
   r <- r + t(r) + diag(n)
   rownames(r) <- colnames(metrics)
   colnames(r) <- colnames(metrics)
-  as.dist(1-abs(r))
+  r
+}
+
+get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
+  as.dist(1-abs(get.correlation.matrix(metrics, complete, method)))
 }
 
 filter.metrics <- function(metrics, change.threshold=0.05) {
