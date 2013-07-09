@@ -39,9 +39,10 @@ set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-get.correlation.matrix <- function(metrics, complete=0.1, method="spearman") {
+get.correlation.matrix <- function(metrics, complete=0.1, method="spearman", fill=0.1) {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
+  l <- nrow(metrics)
   d <- coredata(metrics)
   rl <- mclapply(combn(n, 2, simplify=FALSE), function(ij) {
     i <- ij[1]
@@ -50,7 +51,7 @@ get.correlation.matrix <- function(metrics, complete=0.1, method="spearman") {
     y2 <- d[,j]
     ok <- complete.cases(x2, y2)
     mc <- max(counts[i], counts[j])
-    if (mc != 0 & sum(ok)/mc > complete) {
+    if (mc != 0 & sum(ok)/mc > complete & sum(ok)/l > fill) {
       x2 <- x2[ok]
       y2 <- y2[ok]
       cr <- cor(x2, y2, method=method)
@@ -70,8 +71,8 @@ get.correlation.matrix <- function(metrics, complete=0.1, method="spearman") {
   r
 }
 
-get.correlation.distance <- function(metrics, complete=0.1, method="spearman") {
-  as.dist(1-abs(get.correlation.matrix(metrics, complete, method)))
+get.correlation.distance <- function(metrics, complete=0.1, method="spearman", fill=0.1) {
+  as.dist(1-abs(get.correlation.matrix(metrics, complete, method, fill)))
 }
 
 filter.metrics <- function(metrics, change.threshold=0.05) {
