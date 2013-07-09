@@ -51,7 +51,7 @@ get.correlation.matrix <- function(metrics, complete=0.1, method="spearman", fil
     y2 <- d[,j]
     ok <- complete.cases(x2, y2)
     mc <- max(counts[i], counts[j])
-    if (mc != 0 & sum(ok)/mc > complete & sum(ok)/l > fill) {
+    if (mc != 0 & sum(ok)/mc >= complete & sum(ok)/l >= fill) {
       x2 <- x2[ok]
       y2 <- y2[ok]
       cr <- cor(x2, y2, method=method)
@@ -257,10 +257,10 @@ show.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.
     lx <- length(x)
     ly <- length(y)
     if (length(x) >= 1 & length(y) >= 1
-        & length(unique(x))/lx > u.part
-        & length(unique(y))/ly > u.part
-        & lx/half.width > fill
-        & ly/half.width > fill) {
+        & length(unique(x))/lx >= u.part
+        & length(unique(y))/ly >= u.part
+        & lx/half.width >= fill
+        & ly/half.width >= fill) {
       ## TODO Cramer-von-Mises instead of Kolmogorov-Smirnov
       t <- ks.test(x, y, exact=FALSE)
       if (t$p.value < p.value)
