@@ -205,7 +205,7 @@ multiplot <- function(metrics, limit=50) {
                      as.vector(coredata(m)),
                      as.vector(coredata(ms)))
     names(df) <- c("Index", "Series", "Value", "Smooth")
-    p <- ggplot(data = df) + geom_point(aes(x = Index, y = Value), na.rm=TRUE, shape=".") + geom_path(aes(x = Index, y = Smooth), na.rm=TRUE, color="blue") + xlab("") + ylab("") + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
+    p <- ggplot(data = df) + geom_point(aes(x = Index, y = Value), na.rm=TRUE, shape=".") + geom_path(aes(x = Index, y = Smooth), na.rm=TRUE, color="blue") + xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
     print(p)
     if (k >= n) {
       break
