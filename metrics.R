@@ -113,11 +113,11 @@ get.relative.time <- function(metrics) {
   index(metrics) - min(index(metrics))
 }
 
-find.correlated <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
+get.correlation <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
   x <- coredata(x[subset])
   nx <- sum(!is.na(x))
   m <- coredata(metrics[subset,])
-  correlation <- simplify2array(mclapply(1:ncol(m), function(k) {
+  simplify2array(mclapply(1:ncol(m), function(k) {
     y <- m[,k]
     ok <- complete.cases(x, y)
     if ((sum(ok) / max(nx, sum(!is.na(y)))) > complete) {
@@ -133,8 +133,12 @@ find.correlated <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, me
       0
     }
   }))
+}
+
+find.correlated <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
   metrics[,
-          order(correlation, decreasing=TRUE),
+          order(get.correlation(x, metrics, subset, complete, method),
+                decreasing=TRUE),
           drop=FALSE]
 }
 
