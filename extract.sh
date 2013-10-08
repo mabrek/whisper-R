@@ -13,7 +13,10 @@ then
 fi
 
 # TODO needs to be a script argument
-WHISPER_DIR="${GRAPHITE_STORAGE_DIR}/whisper"
+if [ "$WHISPER_DIR" = "" ]
+then
+  WHISPER_DIR="${GRAPHITE_STORAGE_DIR}/whisper"
+fi
 
 if [ ! -d "$WHISPER_DIR" ]
 then
