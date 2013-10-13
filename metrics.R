@@ -254,7 +254,7 @@ detrend <- function(metrics) {
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
 
-get.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
+get.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05, u.part=0.5, fill=0.5) {
   rollapply(metric, width=2*half.width, by=by, align="center", FUN=function(w) {
     x <- na.omit(w[1:half.width])
     y <- na.omit(w[(half.width+1):(2*half.width)])
