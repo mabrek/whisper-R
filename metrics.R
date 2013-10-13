@@ -254,7 +254,7 @@ detrend <- function(metrics) {
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
 
-show.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
+get.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
   rollapply(metric, width=2*half.width, by=by, align="center", FUN=function(w) {
     x <- na.omit(w[1:half.width])
     y <- na.omit(w[(half.width+1):(2*half.width)])
@@ -278,7 +278,7 @@ show.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.
 
 find.changed.distribution <- function(metrics, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
   change <- simplify2array(mclapply(metrics, function(m) {
-    max(show.distribution.change(m, half.width=half.width, by=by, p.value=p.value, u.part=u.part, fill=fill), na.rm=TRUE)
+    max(get.distribution.change(m, half.width=half.width, by=by, p.value=p.value, u.part=u.part, fill=fill), na.rm=TRUE)
   }))
   indices <- order(change, decreasing=TRUE, na.last=TRUE)
   metrics[,
