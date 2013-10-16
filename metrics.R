@@ -201,7 +201,7 @@ multiplot <- function(metrics, limit=50) {
     m <- data[, i:k, drop=FALSE]
     ms <- sapply(m, function(y) {
       ave(coredata(y),
-          seq.int(r) %/% max(10, r %/% 500),
+          seq.int(r) %/% max(3, r %/% 500),
           FUN=function(x) {mean(x, na.rm=T)})
     })
     df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
