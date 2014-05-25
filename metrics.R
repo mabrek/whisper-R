@@ -11,7 +11,7 @@ library(cluster)
 library(fpc)
 library(utils)
 
-read.file <- function(file.name) {
+read.whisper.export <- function(file.name) {
   as.xts(read.zoo(
     file.name,
     na.strings="None",
@@ -28,7 +28,7 @@ load.metrics <- function(path=".") {
 merge.files <- function(files) {
   k <- length(files)
   if (k == 1) {
-    read.file(files[1])
+    read.whisper.export(files[1])
   } else if (k > 1) {
     merge.xts(merge.files(files[1 : (k %/% 2)]),
               merge.files(files[(k %/% 2 + 1) : k]))
