@@ -75,6 +75,12 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman", f
   as.dist(1-abs(get.correlation.matrix(metrics, complete, method, fill)))
 }
 
+filter.statsd <- function(metrics) {
+  filter.colnames("sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts",
+                  metrics,
+                  TRUE)
+}
+
 filter.metrics <- function(metrics, change.threshold=0.05) {
   cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait)\\.value$",
                       colnames(metrics),
@@ -90,7 +96,7 @@ filter.metrics <- function(metrics, change.threshold=0.05) {
     metrics <- cbind(metrics, cpu.sums)
   }
   metrics <- metrics[,
-                     !grepl("sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts|df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
+                     !grepl("df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
   means <- apply(metrics, 2, mean, na.rm=TRUE)
