@@ -82,9 +82,14 @@ filter.statsd <- function(metrics) {
 }
 
 filter.folsom <- function(metrics) {
-  filter.colnames("\\.acceleration\\.[^\\.]$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|median|skewness|standard_deviation|variance)$",
-                  metrics,
-                  true)
+  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|median|skewness|standard_deviation|variance)$|\\.reductions_since_last_cal$",
+                             metrics,
+                             TRUE)
+  columns <- colnames(metrics)
+  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io.input$|\\.io.output$|\\.total_reductions$|\\.count$",
+                   columns, value=TRUE)
+  metrics[, counters] <- diff(metrics[, counters, drop=FALSE], na.pad=TRUE)
+  metrics
 }
 
 filter.metrics <- function(metrics, change.threshold=0.05) {
