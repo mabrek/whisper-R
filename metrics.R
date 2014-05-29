@@ -81,6 +81,12 @@ filter.statsd <- function(metrics) {
                   TRUE)
 }
 
+filter.folsom <- function(metrics) {
+  filter.colnames("\\.acceleration\\.[^\\.]$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|median|skewness|standard_deviation|variance)$",
+                  metrics,
+                  true)
+}
+
 filter.metrics <- function(metrics, change.threshold=0.05) {
   cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait)\\.value$",
                       colnames(metrics),
