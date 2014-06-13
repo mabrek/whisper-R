@@ -280,17 +280,21 @@ detrend <- function(metrics) {
   metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
 }
 
-get.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.05, u.part=0.5, fill=0.5) {
-  rollapply(metric, width=2*half.width, by=by, align="center", FUN=function(w) {
-    x <- na.omit(w[1:half.width])
-    y <- na.omit(w[(half.width+1):(2*half.width)])
+get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p.value = 0.05, fill=50) {
+  index.range <- range(index(metric))
+  half.window = window.seconds %/% 2
+  total.seconds <- as.integer(difftime(index.range[2], index.range[1], units="s"))
+  indices <- index.range[1] + half.window + by.seconds * (0:((total.seconds - window.seconds) %/% by.seconds))
+  values <- simplify2array(lapply(indices, function(i) {
+    x <- na.omit(as.vector(coredata(window(metric, start=i-half.window, end=i))))
+    ## TODO workaround for window() that includes both start and end,
+    ## expects metric to have 1s or larger intervals
+    y <- na.omit(as.vector(coredata(window(metric, start=i+1, end=i+half.window))))
     lx <- length(x)
     ly <- length(y)
     if (length(x) >= 1 & length(y) >= 1
-        & length(unique(x))/lx >= u.part
-        & length(unique(y))/ly >= u.part
-        & lx/half.width >= fill
-        & ly/half.width >= fill) {
+        & length(unique(x)) >= fill
+        & length(unique(y)) >= fill) {
       ## TODO Cramer-von-Mises instead of Kolmogorov-Smirnov
       t <- ks.test(x, y, exact=FALSE)
       if (t$p.value < p.value)
@@ -299,7 +303,10 @@ get.distribution.change <- function(metric, half.width=100, by=10, p.value = 0.0
         NA
     } else
       NA
-  })
+  }))
+  res <- as.xts(values)
+  index(res) <- indices
+  res
 }
 
 find.changed.distribution <- function(metrics, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
