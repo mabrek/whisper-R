@@ -17,7 +17,16 @@ read.whisper.export <- function(file.name) {
     na.strings="None",
     colClasses=c("integer", "numeric"),
     col.names=c("time", basename(file.name)),
-    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00.00", tz="UTC")},
+    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00.00")},
+    drop=FALSE))
+}
+
+read.jmeter.csv <- function(file.name) {
+  as.xts(read.zoo(
+    file.name,
+    header=TRUE,
+    sep=",",
+    FUN=function(t) {as.POSIXct(paste(substr(t, 1, 10), substr(t, 11, 13), sep="."), origin="1970-01-01 00:00.00", format='%s')},
     drop=FALSE))
 }
 
