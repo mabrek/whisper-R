@@ -323,6 +323,7 @@ get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p
   res
 }
 
+## TODO broken
 find.changed.distribution <- function(metrics, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
   change <- simplify2array(mclapply(metrics, function(m) {
     max(get.distribution.change(m, half.width=half.width, by=by, p.value=p.value, u.part=u.part, fill=fill), na.rm=TRUE)
