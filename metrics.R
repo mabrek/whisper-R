@@ -278,7 +278,7 @@ find.breakpoints <- function(metrics, segment = 0.25) {
       if (is.na(bp)) {
         data.frame()
       } else {
-        data.frame(name=v, time=ind[bp])
+        data.frame(name=as.character(v), time=ind[bp])
       }
     }
   })
