@@ -295,8 +295,9 @@ get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p
   index.range <- range(index(metric))
   half.window = window.seconds %/% 2
   total.seconds <- as.integer(difftime(index.range[2], index.range[1], units="s"))
-  indices <- index.range[1] + half.window + by.seconds * (0:((total.seconds - window.seconds) %/% by.seconds))
-  values <- simplify2array(lapply(indices, function(i) {
+  indices <- unique(align.time(index(metric), by.seconds))
+  indices <- indices[indices > index.range[1] + half.window & indices < index.range[2] - half.window]
+  values <- simplify2array(mclapply(indices, function(i) {
     x <- na.omit(as.vector(coredata(window(metric, start=i-half.window, end=i))))
     ## TODO workaround for window() that includes both start and end,
     ## expects metric to have 1s or larger intervals
@@ -310,13 +311,15 @@ get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p
       t <- ks.test(x, y, exact=FALSE)
       if (t$p.value < p.value)
         t$statistic
-      else
+      else {
         NA
-    } else
+      }
+    } else {
       NA
+    }
   }))
-  res <- as.xts(values)
-  index(res) <- indices
+  res <- xts(values, indices)
+  colnames(res) <- "distribution-change"
   res
 }
 
