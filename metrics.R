@@ -55,6 +55,10 @@ get.rates <- function(jmeter, interval.seconds) {
   rates
 }
 
+heatmap <- function(metric, bins=500) {
+  ggplot(fortify(metric, melt=T), aes(Index, Value)) + stat_bin2d(bins=bins) + scale_fill_gradientn(colours=rainbow(7)) + facet_grid(Series ~ .)
+}
+
 set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
