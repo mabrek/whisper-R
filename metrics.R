@@ -265,6 +265,10 @@ multiplot <- function(metrics, limit=50) {
   }
 }
 
+sameplot <- function(metrics) {
+  autoplot(metrics, facet=NULL)
+}
+
 find.breakpoints <- function(metrics, segment = 0.25) {
   rel.time <- get.relative.time(metrics)
   ind <- index(metrics)
