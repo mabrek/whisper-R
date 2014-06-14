@@ -46,6 +46,15 @@ read.jmeter.csv <- function(file.name) {
     drop=FALSE))
 }
 
+get.rates <- function(jmeter, interval.seconds) {
+  ticks <- align.time(index(jmeter), 10)
+  success <- as.xts(aggregate(jmeter[,"success"] == 1, ticks, sum)) / interval.seconds
+  error <- as.xts(aggregate(jmeter[,"success"] == 0, ticks, sum)) / interval.seconds
+  rates <- merge.xts(success, error)
+  colnames(rates) <- c("success-rate", "error-rate")
+  rates
+}
+
 set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
