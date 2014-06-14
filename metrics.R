@@ -204,23 +204,22 @@ find.na <- function(metrics, subset=1:nrow(metrics)) {
           drop=FALSE]
 }
 
-find.changed.sd <- function(metrics, a, b, n=50) {
+find.changed.sd <- function(metrics, a, b) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
   metrics[,
-          head(order(sd.b/sd.a, decreasing=TRUE, na.last=TRUE), n),
+          order(sd.b/sd.a, decreasing=TRUE, na.last=TRUE),
           drop=FALSE]
 }
 
-find.changed.mean <- function(metrics, a, b, n=50) {
+find.changed.mean <- function(metrics, a, b) {
   sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
   mean.a <- sapply(metrics[a, ], mean, na.rm=TRUE)
   mean.b <- sapply(metrics[b, ], mean, na.rm=TRUE)
   metrics[,
-          head(order(abs(mean.b - mean.a)/sd.a,
+          order(abs(mean.b - mean.a)/sd.a,
                      decreasing=TRUE,
                      na.last=TRUE),
-               n),
           drop=FALSE]
 }
 
