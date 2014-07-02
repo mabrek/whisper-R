@@ -47,7 +47,7 @@ read.jmeter.csv <- function(file.name) {
 }
 
 get.rates <- function(jmeter, interval.seconds) {
-  ticks <- align.time(index(jmeter), 10)
+  ticks <- align.time(index(jmeter), interval.seconds)
   success <- as.xts(aggregate(jmeter[,"success"] == 1, ticks, sum)) / interval.seconds
   error <- as.xts(aggregate(jmeter[,"success"] == 0, ticks, sum)) / interval.seconds
   rates <- merge.xts(success, error)
