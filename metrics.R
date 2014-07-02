@@ -51,7 +51,7 @@ get.rates <- function(jmeter, interval.seconds) {
   success <- as.xts(aggregate(jmeter[,"success"] == 1, ticks, sum)) / interval.seconds
   error <- as.xts(aggregate(jmeter[,"success"] == 0, ticks, sum)) / interval.seconds
   rates <- merge.xts(success, error)
-  colnames(rates) <- c("success-rate", "error-rate")
+  colnames(rates) <- c("success_rate", "error_rate")
   rates
 }
 
