@@ -106,7 +106,7 @@ filter.statsd <- function(metrics) {
 }
 
 filter.folsom <- function(metrics) {
-  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|median|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$",
+  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|median|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$",
                              metrics,
                              TRUE)
   columns <- colnames(metrics)
