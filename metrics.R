@@ -265,6 +265,36 @@ multiplot <- function(metrics, limit=50) {
   }
 }
 
+multiplot.numbers <- function(metrics, limit=15) {
+ data <- metrics[,
+                  which(sapply(metrics, function(v) {!all(is.na(v))})),
+                  drop=FALSE]
+  r <- nrow(data)
+  n <- ncol(data)
+  i <- 1
+  k <- min(n, limit)
+ repeat {
+    m <- data[, i:k, drop=FALSE]
+    df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
+                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = colnames(m)),
+                     as.vector(coredata(m)))
+    names(df) <- c("Index", "Series", "Value")
+    p <- ggplot(data = df) + geom_path(aes(x = Index, y = Value), na.rm=TRUE) + xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0))
+    print(p)
+    if (k >= n) {
+      break
+    } else {
+      choice <- readline("empty line to continue, anything else to stop :")
+      if (choice == "") {
+        i <- i + limit
+        k <- min(n, k + limit)
+      } else {
+        break
+      }
+    }
+  }
+}
+
 sameplot <- function(metrics) {
   autoplot(metrics, facet=NULL)
 }
