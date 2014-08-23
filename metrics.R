@@ -418,3 +418,9 @@ plot.cluster <- function(metrics, pamobject, id, limit=50) {
 par.pam <- function(d, krange) {
   mclapply(krange, function(k) {pam(d, k, diss=TRUE)})
 }
+
+mc.period.apply <- function(metrics, INDEX, FUN, ...) {
+  do.call("merge.xts", mclapply(metrics, function(m) {
+    period.apply(m, INDEX, FUN, ...)
+  }))
+}
