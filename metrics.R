@@ -112,7 +112,7 @@ filter.folsom <- function(metrics) {
   columns <- colnames(metrics)
   counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$",
                    columns, value=TRUE)
-  metrics[, counters] <- na.fill(metrics[, counters, drop=FALSE], 0)
+  coredata(metrics[, counters]) <- na.fill(coredata(metrics[, counters, drop=FALSE]), 0)
   metrics[, counters] <- diff(metrics[, counters, drop=FALSE], na.pad=TRUE)
   metrics
 }
