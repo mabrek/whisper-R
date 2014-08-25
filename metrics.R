@@ -117,7 +117,7 @@ filter.folsom <- function(metrics) {
   metrics
 }
 
-filter.metrics <- function(metrics, change.threshold=0.05) {
+filter.metrics <- function(metrics, change.threshold=0.01) {
   cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait)\\.value$",
                       colnames(metrics),
                       value=TRUE)
@@ -135,8 +135,7 @@ filter.metrics <- function(metrics, change.threshold=0.05) {
                      !grepl("df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
-  means <- apply(metrics, 2, mean, na.rm=TRUE)
-  sds <- apply(metrics, 2, sd, na.rm=TRUE)
+  medians <- apply(metrics, 2, median, na.rm=TRUE)
   ranges <- apply(metrics, 2, range, na.rm=TRUE)
   metrics[,
           (!grepl("\\.cpu\\.[[:alpha:]]+\\.value$", columns) | ranges[2,] > 5)
@@ -144,7 +143,7 @@ filter.metrics <- function(metrics, change.threshold=0.05) {
           & is.finite(ranges[1,])
           & is.finite(ranges[2,])
           & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
-          & abs(sds/means) > change.threshold
+          & abs((ranges[2,] - ranges[1,])/medians) > change.threshold
           & (!grepl("if_octets", columns) | ranges[2,] > 1000)
           & (!grepl("if_packets", columns) | ranges[2,] > 10),
           drop=FALSE
