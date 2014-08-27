@@ -124,7 +124,7 @@ filter.folsom <- function(metrics) {
 }
 
 filter.metrics <- function(metrics, change.threshold=0.01) {
-  cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait)\\.value$",
+  cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait|interrupt)\\.value$",
                       colnames(metrics),
                       value=TRUE)
   cpu.sums <- sapply(
