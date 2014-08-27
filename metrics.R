@@ -11,6 +11,13 @@ library(cluster)
 library(fpc)
 library(utils)
 
+lsd <- function(pos=1) {
+  names(grep("^function$",
+             sapply(ls(pos=pos), function(x) {mode(get(x))}),
+             value=T,
+             invert=T))
+}
+
 read.whisper.export <- function(file.name) {
   as.xts(read.zoo(
     file.name,
