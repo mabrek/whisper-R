@@ -397,6 +397,12 @@ find.autocorrelated <- function(metrics, subset=1:nrow(metrics), lag=100, p.valu
           drop=FALSE]
 }
 
+get.autocorrelation <- function(metrics, subset=1:nrow(metrics), lag) {
+  simplify2array(mclapply(metrics[subset,], function(m) {
+    cor(m, lag(m, lag), use="na.or.complete")
+  }))
+}
+
 plot.medoids <- function(metrics, pamobject, limit=50) {
   sorted <- order(pamobject$silinfo$clus.avg.widths * pamobject$clusinfo[, "size"], decreasing=TRUE)
   sorted <- sorted[which(pamobject$clusinfo[sorted, "size"] > 1)]
