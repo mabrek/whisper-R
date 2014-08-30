@@ -204,6 +204,12 @@ find.constant <- function(metrics, subset=1:nrow(metrics)) {
           drop=FALSE]
 }
 
+filter.any.na <- function(metrics) {
+  metrics[,
+          which(sapply(metrics, function(v) {all(!is.na(v))})),
+          drop=FALSE]
+}
+
 find.na <- function(metrics, subset=1:nrow(metrics)) {
   metrics[,
           which(sapply(metrics[subset,], function(v) {all(is.na(v))})),
@@ -435,4 +441,16 @@ mc.period.apply <- function(metrics, INDEX, FUN, ...) {
   do.call("merge.xts", mclapply(metrics, function(m) {
     period.apply(m, INDEX, FUN, ...)
   }))
+}
+
+mc.lm <- function(metrics) {
+  rel.time <- get.relative.time(metrics)
+  n <- names(metrics)
+  lms <- mclapply(metrics, function(m) {
+    fit <- lm(coredata(m) ~ rel.time, na.action = na.omit)
+    list(residuals = residuals(fit), r.squared = summary.lm(fit)$r.squared)
+  })
+  m.r <- metrics
+  coredata(m.r) <- sapply(lms, function(l) {l$residuals})
+  list(residuals = m.r, r.squared = sapply(lms, function(l) {l$r.squared}))
 }
