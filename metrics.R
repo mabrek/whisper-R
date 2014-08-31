@@ -454,3 +454,17 @@ mc.lm <- function(metrics) {
   coredata(m.r) <- sapply(lms, function(l) {l$residuals})
   list(residuals = m.r, r.squared = sapply(lms, function(l) {l$r.squared}))
 }
+
+get.seasonal <- function(metrics, period) {
+  m.s <- metrics
+  coredata(m.s) <- simplify2array(mclapply(metrics, function(m) {
+    trend <- rollapply(m, width=period, fill=NA, align="center", median, na.rm=T)
+    season <- m - trend
+    figure <- numeric(period)
+    l <- length(m)
+    index <- seq.int(1, l, by = period) - 1
+    for (i in 1:period) figure[i] <- median(season[index + i], na.rm = TRUE)
+    rep(figure, l %/% period + 1)[seq_len(l)]
+  }))
+  m.s
+}
