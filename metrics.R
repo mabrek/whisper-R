@@ -459,7 +459,7 @@ get.seasonal <- function(metrics, period) {
   m.s <- metrics
   coredata(m.s) <- simplify2array(mclapply(metrics, function(m) {
     trend <- rollapply(m, width=period, fill=NA, align="center", median, na.rm=T)
-    season <- m - trend
+    season <- coredata(m - trend)
     figure <- numeric(period)
     l <- length(m)
     index <- seq.int(1, l, by = period) - 1
