@@ -455,16 +455,24 @@ mc.lm <- function(metrics) {
   list(residuals = m.r, r.squared = sapply(lms, function(l) {l$r.squared}))
 }
 
-get.seasonal <- function(metrics, period) {
-  m.s <- metrics
-  coredata(m.s) <- simplify2array(mclapply(metrics, function(m) {
+decompose.median <- function(metrics, period) {
+  ld <- mclapply(metrics, function(m) {
     trend <- rollapply(m, width=period, fill=NA, align="center", median, na.rm=T)
     season <- coredata(m - trend)
     figure <- numeric(period)
     l <- length(m)
     index <- seq.int(1, l, by = period) - 1
     for (i in 1:period) figure[i] <- median(season[index + i], na.rm = TRUE)
-    rep(figure, l %/% period + 1)[seq_len(l)]
-  }))
-  m.s
+    list(seasonal=rep(figure, l %/% period + 1)[seq_len(l)], trend=trend)
+  })
+  n = ncol(metrics)
+  idx = index(metrics)
+  nm = names(metrics)
+  uld <- unlist(ul, recursive=FALSE)
+  t.m <- matrix(unlist(uld[names(uld) == "trend"], use.name = FALSE), ncol=n)
+  trend <- xts(t.m, order.by = idx)
+  names(trend) <- nm
+  seasonal <- xts(s.m, order.by = idx)
+  names(seasonal) <- nm
+  list(trend=trend, seasonal=seasonal)
 }
