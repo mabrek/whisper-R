@@ -456,8 +456,6 @@ mc.lm <- function(metrics) {
 }
 
 decompose.median <- function(metrics, period) {
-  nm = names(metrics)
-  names(metrics) <- NULL
   ld <- mclapply(metrics, function(m) {
     trend <- rollapply(m, width=period, fill=NA, align="center", median, na.rm=T)
     season <- coredata(m - trend)
@@ -468,8 +466,10 @@ decompose.median <- function(metrics, period) {
     list(seasonal=rep(figure, l %/% period + 1)[seq_len(l)],
          trend=trend)
   })
+  names(ld) <- NULL
   n = ncol(metrics)
   idx = index(metrics)
+  nm = names(metrics)
   uld <- unlist(ld, recursive=FALSE)
   t.m <- matrix(unlist(uld[names(uld) == "trend"], use.name = FALSE), ncol = n)
   trend <- xts(t.m, order.by = idx)
