@@ -235,9 +235,9 @@ find.changed.mean <- function(metrics, a, b) {
           drop=FALSE]
 }
 
-filter.colnames <- function(pattern, metrics, invert=FALSE) {
+filter.colnames <- function(pattern, metrics, ...) {
   metrics[,
-          grep(pattern, colnames(metrics), invert=invert),
+          grep(pattern, colnames(metrics), ...),
           drop=FALSE]
 }
 
