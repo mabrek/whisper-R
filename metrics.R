@@ -456,9 +456,14 @@ mc.lm <- function(metrics) {
 }
 
 decompose.median <- function(metrics, period) {
+  half.window <- period %/% 2
+  median.window <- half.window * 2 +1
+  l <- nrow(metrics)
   ld <- mclapply(metrics, function(m) {
-    trend <- rollapply(m, width=period, fill=NA, align="center", median, na.rm=T)
-    season <- coredata(m - trend)
+    trend <- runmed(coredata(m), median.window, endrule="keep")
+    trend[1:half.window] <- NA
+    trend[(l - half.window):l] <- NA
+    season <- coredata(m) - trend
     figure <- numeric(period)
     l <- length(m)
     index <- seq.int(1, l, by = period) - 1
