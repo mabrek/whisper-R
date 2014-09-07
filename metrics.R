@@ -460,6 +460,7 @@ decompose.median <- function(metrics, period) {
   median.window <- half.window * 2 +1
   l <- nrow(metrics)
   ld <- mclapply(metrics, function(m) {
+    # switch back to rollaply(median) to allow NAs in data
     trend <- runmed(coredata(m), median.window, endrule="keep")
     trend[1:half.window] <- NA
     trend[(l - half.window):l] <- NA
