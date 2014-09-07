@@ -10,6 +10,7 @@ library(xts)
 library(cluster)
 library(fpc)
 library(utils)
+library(quantreg)
 
 lsd <- function(pos=1) {
   names(grep("^function$",
@@ -453,6 +454,16 @@ mc.lm <- function(metrics) {
   m.r <- metrics
   coredata(m.r) <- sapply(lms, function(l) {l$residuals})
   list(residuals = m.r, r.squared = sapply(lms, function(l) {l$r.squared}))
+}
+
+mc.rq <- function(metrics) {
+  rel.time <- get.relative.time(metrics)
+  lms <- simplify2array(mclapply(metrics, function(m) {
+    rq(coredata(m) ~ rel.time, na.action = na.omit)$residuals
+  }))
+  m.r <- xts(lms, order.by = index(metrics))
+  names(m.r) <- names(metrics)
+  m.r
 }
 
 decompose.median <- function(metrics, period) {
