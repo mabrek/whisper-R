@@ -485,3 +485,7 @@ decompose.median <- function(metrics, period) {
   names(seasonal) <- nm
   list(trend=trend, seasonal=seasonal)
 }
+
+non.seasonal.proportion <- function(metrics, decomposed.metrics) {
+  sapply(abs(metrics - decomposed.metrics$trend - decomposed.metrics$seasonal), sum, na.rm=T)/sapply(abs(decomposed.metrics$seasonal), sum, na.rm=T)
+}
