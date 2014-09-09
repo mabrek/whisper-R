@@ -110,13 +110,13 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman", f
 filter.statsd <- function(metrics) {
   filter.colnames("sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts",
                   metrics,
-                  TRUE)
+                  invert = TRUE)
 }
 
 filter.codahale_like <- function(metrics) {
   metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$",
                              metrics,
-                             TRUE)
+                             invert = TRUE)
   columns <- colnames(metrics)
   counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$",
                    columns, value=TRUE)
