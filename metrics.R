@@ -114,7 +114,7 @@ filter.statsd <- function(metrics) {
 }
 
 filter.codahale_like <- function(metrics) {
-  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|mean|one)$|\\.(arithmetic_mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$",
+  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$",
                              metrics,
                              invert = TRUE)
   columns <- colnames(metrics)
