@@ -312,6 +312,17 @@ sameplot <- function(metrics) {
   autoplot(metrics, facet=NULL)
 }
 
+multiplot.sorted <- function(metrics, comparison, decreasing=TRUE, ...) {
+  sort.order <- order(comparison, decreasing = decreasing)
+  data <- metrics[,
+                  sort.order,
+                  drop=FALSE]
+  colnames(data) <- paste("[", sort.order, "]",
+                          comparison[sort.order],
+                          names(metrics)[sort.order])
+  multiplot.numbers(data, ...)
+}
+
 find.breakpoints <- function(metrics, segment = 0.25) {
   rel.time <- get.relative.time(metrics)
   ind <- index(metrics)
