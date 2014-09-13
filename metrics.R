@@ -323,6 +323,10 @@ multiplot.sorted <- function(metrics, comparison, decreasing=TRUE, ...) {
   multiplot.numbers(data, ...)
 }
 
+robust.histogram <- function(x, probs=c(0.01, 0.99), ...) {
+  qplot(x = x, xlim = quantile(x, probs, na.rm=TRUE), ...)
+}
+
 find.breakpoints <- function(metrics, segment = 0.25) {
   rel.time <- get.relative.time(metrics)
   ind <- index(metrics)
