@@ -349,14 +349,6 @@ find.breakpoints <- function(metrics, segment = 0.25) {
   result[order(result$time),]
 }
 
-detrend <- function(metrics) {
-  columns <- colnames(metrics)
-  trend.cols <- grep("\\.memory\\.memory\\.|\\.vmstats\\.memory\\.|\\.vmem\\.vmpage_number\\.",
-                     columns, value=TRUE)
-  metrics[, trend.cols] <- diff(metrics[, trend.cols, drop=FALSE], na.pad=TRUE)
-  metrics[, !grepl("\\.load\\.load\\.", columns), drop=FALSE]
-}
-
 get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p.value = 0.05, fill=50) {
   index.range <- range(index(metric))
   half.window = window.seconds %/% 2
@@ -525,4 +517,17 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
   seasonal <- seasonal - d$seasonal[, names(seasonal)]
   names(seasonal) <- paste(names(seasonal), "deseason", sep = ".")
   merge.xts(seasonal, other)
+}
+
+maybe.diff <- function(metrics, only.diff = 2, both = 10) {
+  d <- diff(metrics)
+  q <- simplify2array(mclapply(d, quantile, probs=c(0.25, 0.5, 0.75), na.rm=T))
+  d.p <- abs((q[3,] - q[1,])/q[2,])
+  od <- d[, !is.na(d.p) & (d.p < only.diff), drop = FALSE]
+  other <- exclude.columns(od, metrics)
+  bd <- d[, !is.na(d.p) & (only.diff <= d.p) & (d.p < both), drop = FALSE]
+  print(names(bd))
+  rd <- merge.xts(od, bd)
+  names(rd) <- paste(names(rd), "diff", sep = ".")
+  merge.xts(rd, other)
 }
