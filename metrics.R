@@ -521,7 +521,7 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
 
 maybe.diff <- function(metrics, only.diff = 2, both = 10) {
   d <- diff(metrics)
-  q <- simplify2array(mclapply(d, quantile, probs=c(0.25, 0.5, 0.75), na.rm=T))
+  q <- simplify2array(mclapply(d, quantile, probs=c(0.25, 0.5, 0.75), na.rm = TRUE))
   d.p <- abs((q[3,] - q[1,])/q[2,])
   od <- d[, !is.na(d.p) & (d.p < only.diff), drop = FALSE]
   other <- exclude.columns(od, metrics)
@@ -530,4 +530,25 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
   rd <- merge.xts(od, bd)
   names(rd) <- paste(names(rd), "diff", sep = ".")
   merge.xts(rd, other)
+}
+
+find.outliers <- function(metrics, prob = 0.1, min.score = 2) {
+  # TODO use recursive tree merge as in merge.files
+  merge.xts(mclapply(metrics, function(m) {
+    q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE)
+    d.low <- q[2] - q[1]
+    d.high <- q[3] - q[2]
+    center <- q[2]
+    if (d.low > 0) {
+      m.low <- m[m < center - min.score * d.low,] / d.low
+    } else {
+      m.low <- xts()
+    }
+    if (d.high > 0) {
+      m.high <- m[m > center + min.sore * d.high,] / d.high
+    } else {
+      m.high <- xts()
+    }
+    merge.xts(m.low, m.high)
+  }))
 }
