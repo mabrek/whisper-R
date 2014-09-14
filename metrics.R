@@ -550,7 +550,7 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
       m.high <- abs(m.c[m.c > min.score * d.high,] / d.high)
     }
     mo <- if ((length(m.low) > 0) & (length(m.high) > 0)) {
-      merge.xts(m.low, m.high, fill = 0)
+      merge.xts(m.low, m.high)
     } else if (length(m.low) > 0) {
       m.low
     } else if (length(m.high) > 0) {
