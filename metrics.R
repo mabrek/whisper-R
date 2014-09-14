@@ -536,6 +536,8 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
   # TODO use recursive tree merge as in merge.files
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   do.call("merge.xts", mclapply(metrics, function(m) {
+    # TODO use rolling limits over window
+    # TODO require 10/prob unique values
     q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE)
     d.low <- q[2] - q[1]
     d.high <- q[3] - q[2]
