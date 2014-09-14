@@ -534,23 +534,30 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
 
 find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
   # TODO use recursive tree merge as in merge.files
+  zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   do.call("merge.xts", mclapply(metrics, function(m) {
     q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE)
     d.low <- q[2] - q[1]
     d.high <- q[3] - q[2]
     center <- q[2]
-    m.c = m - center
+    m.c <- m - center
+    m.low <- xts()
     if (d.low > 0) {
       m.low <- abs(m.c[m.c < - min.score * d.low,] / d.low)
-    } else {
-      m.low <- xts()
     }
+    m.high <- xts()
     if (d.high > 0) {
       m.high <- abs(m.c[m.c > min.score * d.high,] / d.high)
-    } else {
-      m.high <- xts()
     }
-    mo <- merge.xts(m.low, m.high)
+    mo <- if ((nrow(m.low) > 0) & (nrow(m.high) > 0)) {
+      merge.xts(m.low, m.high, fill = 0)
+    } else if (nrow(m.low) > 0) {
+      m.low
+    } else if (nrow(m.high) > 0) {
+      m.high
+    } else {
+      zero
+    }
     xts(apply(mo, 1, max, na.rm = TRUE), order.by = index(mo))
   }))
 }
