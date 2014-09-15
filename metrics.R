@@ -547,3 +547,8 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
     }
   }))
 }
+
+sum.xts.rows <- function(metrics) {
+  xts(rowSums(metrics, na.rm=T), index(metrics))
+}
+
