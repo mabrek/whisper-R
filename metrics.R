@@ -537,29 +537,13 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   do.call("merge.xts", mclapply(metrics, function(m) {
     # TODO use rolling limits over window
-    # TODO require 10/prob unique values
     q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE)
-    d.low <- q[2] - q[1]
-    d.high <- q[3] - q[2]
-    center <- q[2]
-    m.c <- m - center
-    m.low <- xts()
-    if (d.low > 0) {
-      m.low <- abs(m.c[m.c < - min.score * d.low,] / d.low)
-    }
-    m.high <- xts()
-    if (d.high > 0) {
-      m.high <- abs(m.c[m.c > min.score * d.high,] / d.high)
-    }
-    mo <- if ((length(m.low) > 0) & (length(m.high) > 0)) {
-      merge.xts(m.low, m.high)
-    } else if (length(m.low) > 0) {
-      m.low
-    } else if (length(m.high) > 0) {
-      m.high
+    d <- q[3] - q[1]
+    m.c <- m - q[2]
+    if ((d > 0) & (length(unique(m)) > (2 / prob))) {
+      abs(m.c[(-min.score * d < m.c) | (m.c > min.score * d),] / d)
     } else {
       zero
     }
-    xts(apply(mo, 1, max, na.rm = TRUE), order.by = index(mo))
   }))
 }
