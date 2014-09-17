@@ -541,7 +541,7 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
     d <- q[3] - q[1]
     m.c <- m - q[2]
     if ((d > 0) & (length(unique(m)) > (2 / prob))) {
-      abs(m.c[((-min.score * d) < m.c) | (m.c > (min.score * d)),] / d)
+      abs(m.c[(m.c < (-min.score * d)) | (m.c > (min.score * d)),] / d)
     } else {
       zero
     }
