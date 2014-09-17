@@ -34,7 +34,7 @@ load.metrics <- function(path=".") {
 }
 
 merge.files <- function(files) {
-  tree.merge.xts(files, read.whisper.export)
+  tree.merge.xts(files, FUN = read.whisper.export)
 }
 
 tree.merge.xts <- function(x, FUN = function(m) {m}) {
@@ -42,8 +42,8 @@ tree.merge.xts <- function(x, FUN = function(m) {m}) {
   if (k == 1) {
     FUN(x[[1]])
   } else if (k > 1) {
-    merge.xts(tree.merge.xts(x[1 : (k %/% 2)]),
-              tree.merge.xts(x[(k %/% 2 + 1) : k]))
+    merge.xts(tree.merge.xts(x[1 : (k %/% 2)], FUN = FUN),
+              tree.merge.xts(x[(k %/% 2 + 1) : k], FUN = FUN))
   }
 }
 
