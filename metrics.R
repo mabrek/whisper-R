@@ -34,12 +34,16 @@ load.metrics <- function(path=".") {
 }
 
 merge.files <- function(files) {
-  k <- length(files)
+  tree.merge.xts(files, read.whisper.export)
+}
+
+tree.merge.xts <- function(x, FUN = function(m) {m}) {
+  k <- length(x)
   if (k == 1) {
-    read.whisper.export(files[1])
+    FUN(x[[1]])
   } else if (k > 1) {
-    merge.xts(merge.files(files[1 : (k %/% 2)]),
-              merge.files(files[(k %/% 2 + 1) : k]))
+    merge.xts(tree.merge.xts(x[1 : (k %/% 2)]),
+              tree.merge.xts(x[(k %/% 2 + 1) : k]))
   }
 }
 
@@ -446,7 +450,7 @@ par.pam <- function(d, krange) {
 }
 
 mc.period.apply <- function(metrics, INDEX, FUN, ...) {
-  do.call("merge.xts", mclapply(metrics, function(m) {
+  tree.merge.xts(mclapply(metrics, function(m) {
     period.apply(m, INDEX, FUN, ...)
   }))
 }
@@ -535,13 +539,18 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
 find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
   # TODO use recursive tree merge as in merge.files
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
-  do.call("merge.xts", mclapply(metrics, function(m) {
+  tree.merge.xts(mclapply(metrics, function(m) {
     # TODO use rolling limits over window
     q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE)
     d <- q[3] - q[1]
     m.c <- m - q[2]
     if ((d > 0) & (length(unique(m)) > (2 / prob))) {
-      abs(m.c[(m.c < (-min.score * d)) | (m.c > (min.score * d)),] / d)
+      out <- abs(m.c[(m.c < (-min.score * d)) | (m.c > (min.score * d)),] / d)
+      if (nrow(out) > 0) {
+        out
+      } else {
+        zero
+      }
     } else {
       zero
     }
