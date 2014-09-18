@@ -546,12 +546,13 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   tree.merge.xts(mclapply(metrics, function(m) {
     # TODO use rolling limits over window
-    q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE)
+    q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE, type = 1)
     d <- q[3] - q[1]
     m.c <- m - q[2]
     if ((d > 0) & (length(unique(m)) > (2 / prob))) {
       out <- abs(m.c[(m.c < (-min.score * d)) | (m.c > (min.score * d)),] / d)
       if (nrow(out) > 0) {
+        # TODO select up to n top outliers like ESD
         out
       } else {
         zero
