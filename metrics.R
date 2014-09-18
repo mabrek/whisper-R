@@ -40,7 +40,12 @@ merge.files <- function(files) {
 tree.merge.xts <- function(x, FUN = function(m) {m}) {
   k <- length(x)
   if (k == 1) {
-    FUN(x[[1]])
+    r <- FUN(x[[1]])
+    n <- names(x[1])
+    if (!is.null(n)) {
+      names(r) <- n
+    }
+    r
   } else if (k > 1) {
     merge.xts(tree.merge.xts(x[1 : (k %/% 2)], FUN = FUN),
               tree.merge.xts(x[(k %/% 2 + 1) : k], FUN = FUN))
