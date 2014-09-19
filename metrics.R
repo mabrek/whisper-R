@@ -541,7 +541,7 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
   merge.xts(rd, other)
 }
 
-find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
+find.outliers <- function(metrics, prob = 0.1, min.score = 5, max.n = 5) {
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   tree.merge.xts(mclapply(metrics, function(m) {
     # TODO use rolling limits over window
@@ -551,8 +551,7 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
     if ((d > 0) & (length(unique(m)) > (2 / prob))) {
       out <- abs(m.c[(m.c < (-min.score * d)) | (m.c > (min.score * d)),] / d)
       if (nrow(out) > 0) {
-        # TODO select up to n top outliers like ESD
-        out
+        out[sort(head(order(out, na.last = NA, decreasing = TRUE), n = max.n)),]
       } else {
         zero
       }
