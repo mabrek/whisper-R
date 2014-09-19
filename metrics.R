@@ -167,7 +167,7 @@ filter.metrics <- function(metrics, change.threshold=0.01) {
 }
 
 get.relative.time <- function(metrics) {
-  index(metrics) - min(index(metrics))
+  as.numeric(index(metrics) - min(index(metrics)))
 }
 
 get.correlation <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
