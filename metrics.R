@@ -252,11 +252,15 @@ filter.colnames <- function(pattern, metrics, ...) {
 }
 
 multiplot <- function(metrics, limit=50) {
+  if (ncol(metrics) == 0)
+    return(NULL)
   data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
                   drop=FALSE]
   r <- nrow(data)
   n <- ncol(data)
+  if (r == 0 | n == 0)
+    return(NULL)
   i <- 1
   k <- min(n, limit)
   repeat {
@@ -288,6 +292,7 @@ multiplot <- function(metrics, limit=50) {
 }
 
 multiplot.numbers <- function(metrics, limit=15) {
+ # TODO generalize paging through columns
  data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
                   drop=FALSE]
