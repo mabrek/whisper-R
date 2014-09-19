@@ -542,7 +542,6 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
 }
 
 find.outliers <- function(metrics, prob = 0.1, min.score = 5) {
-  # TODO use recursive tree merge as in merge.files
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   tree.merge.xts(mclapply(metrics, function(m) {
     # TODO use rolling limits over window
