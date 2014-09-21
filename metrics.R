@@ -322,6 +322,11 @@ multiplot.numbers <- function(metrics, limit=15) {
   }
 }
 
+view <- function(pattern, metrics, limit = 15) {
+  multiplot.numbers(filter.colnames(pattern, metrics, ignore.case = TRUE),
+                    limit = limit)
+}
+
 sameplot <- function(metrics) {
   autoplot(metrics, facet=NULL)
 }
