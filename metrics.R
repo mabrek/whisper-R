@@ -347,19 +347,17 @@ robust.histogram <- function(x, probs=c(0.01, 0.99), ...) {
 }
 
 find.breakpoints <- function(metrics, segment = 0.25) {
-  rel.time <- get.relative.time(metrics)
-  ind <- index(metrics)
-  df <- as.data.frame(metrics)
-  bpl <- mclapply(colnames(metrics), function(v) {
-    if ((segment < 1 & floor(segment * length(na.omit(df[,v]))) <= 2)
+  bpl <- mclapply(metrics, function(m) {
+    m <- na.omit(m)
+    if ((segment < 1 & floor(segment * length(m)) <= 2)
         | segment > 1) {
       data.frame()
     } else {
-      bp <- breakpoints(df[,v] ~ rel.time, h=segment)$breakpoints
+      bp <- breakpoints(coredata(m) ~ get.relative.time(m), h=segment)$breakpoints
       if (is.na(bp)) {
         data.frame()
       } else {
-        data.frame(name=v, time=ind[bp])
+        data.frame(name=names(m)[1], time=index(m)[bp])
       }
     }
   })
