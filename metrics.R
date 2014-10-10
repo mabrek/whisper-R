@@ -123,11 +123,11 @@ filter.statsd <- function(metrics) {
 }
 
 filter.codahale_like <- function(metrics) {
-  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$",
+  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$|\\.meanRate$",
                              metrics,
                              invert = TRUE)
   columns <- colnames(metrics)
-  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$",
+  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|SpeculativeRetries|MemtableSwitchCount)\\.value$",
                    columns, value=TRUE)
   metrics[, counters] <- diff(metrics[, counters, drop=FALSE], na.pad=TRUE)
   metrics
