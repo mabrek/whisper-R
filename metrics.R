@@ -588,27 +588,37 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
       prev <- as.numeric(w[1:width-1])
       l <- last(w)
-      q = quantile(prev, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
-      if (q[1] == q[5]) { # was constant
-        if (l == q[1]) {
-          0 # remained the same
+      if (all(is.na(prev))) {
+        if (!is.na(l)) {
+          4 # appeared
         } else {
-          ## TODO change threshold?
-          1 # constant changed
+          0 # remained NA
         }
+      } else if (is.na(l)) {
+        NA
       } else {
-        d = q[4] - q[2]
-        if (d == 0) {
-          if (abs((l - q[3]) / (q[5] - q[1])) > min.score) {
-            3 # outside min-max range
+        q = quantile(prev, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
+        if (q[1] == q[5]) { # was constant
+          if (l == q[1]) {
+            0 # remained the same
           } else {
-            0 # inside min-max range
+            ## TODO change threshold?
+            1 # constant changed
           }
         } else {
-          if (abs((l - q[3]) / d) > 5) {
-            2 # outside iqr range
+          d = q[4] - q[2]
+          if (d == 0) {
+            if (abs((l - q[3]) / (q[5] - q[1])) > min.score) {
+              3 # outside min-max range
+            } else {
+              0 # inside min-max range
+            }
           } else {
-            0 # inside iqr range
+            if (abs((l - q[3]) / d) > 5) {
+              2 # outside iqr range
+            } else {
+              0 # inside iqr range
+            }
           }
         }
       }
