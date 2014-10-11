@@ -606,15 +606,18 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
             1 # constant changed
           }
         } else {
-          d = q[4] - q[2]
-          if (d == 0) {
-            if (abs((l - q[3]) / (q[5] - q[1])) > min.score) {
+          dq = q[4] - q[2]
+          r = q[5] - q[1]
+          lc = l - q[3]
+          if (dq == 0) {
+            if (abs(lc / r) > 1) {
               3 # outside min-max range
             } else {
               0 # inside min-max range
             }
           } else {
-            if ((abs((l - q[3]) / d) > 5) & ((l < q[1]) | (l > q[5]))) {
+            if ((abs(lc / dq) > min.score)
+                & (abs(lc / r) > 1)) {
               2 # outside iqr and min-max range
             } else {
               0 # inside iqr range
