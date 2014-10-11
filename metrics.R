@@ -291,7 +291,7 @@ multiplot <- function(metrics, limit=50) {
   }
 }
 
-multiplot.numbers <- function(metrics, limit=15) {
+multiplot.numbers <- function(metrics, limit=15, vline=NA) {
  # TODO generalize paging through columns
  data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
@@ -307,6 +307,9 @@ multiplot.numbers <- function(metrics, limit=15) {
                      as.vector(coredata(m)))
     names(df) <- c("Index", "Series", "Value")
     p <- ggplot(data = df) + geom_path(aes(x = Index, y = Value), na.rm=TRUE) + xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0))
+    if (!is.na(vline)) {
+      p <- p + geom_vline(xintercept=as.numeric(index(metrics)[vline]), colour="red")
+    }
     print(p)
     if (k >= n) {
       break
@@ -583,9 +586,9 @@ scale.iqr <- function(metrics, prob = 0.1) {
 }
 
 find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
-  ## TODO remember last anomaly position and reset after it
   tree.merge.xts(mclapply(metrics, function(m) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
+      ## TODO check ranges as in filter metrics
       prev <- as.numeric(w[1:width-1])
       l <- last(w)
       if (all(is.na(prev))) {
