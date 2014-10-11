@@ -549,7 +549,7 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
   merge.xts(rd, other)
 }
 
-find.outliers <- function(metrics, prob = 0.1, min.score = 5, max.n = 5) {
+find.outliers.iqr <- function(metrics, prob = 0.1, min.score = 5, max.n = 5) {
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   tree.merge.xts(mclapply(metrics, function(m) {
     # TODO use rolling limits over window
@@ -566,6 +566,16 @@ find.outliers <- function(metrics, prob = 0.1, min.score = 5, max.n = 5) {
     } else {
       zero
     }
+  }))
+}
+
+find.outliers.ecdf <- function(metrics, width) {
+  tree.merge.xts(mclapply(metrics, function(m) {
+    rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
+      pf <- ecdf(as.numeric(w[1:width-1]))
+      pl <- pf(w[width])
+      min(pl, 1 - pl)
+    })
   }))
 }
 
