@@ -552,7 +552,6 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
 find.outliers.iqr <- function(metrics, prob = 0.1, min.score = 5, max.n = 5) {
   zero <- xts(rep.int(0, nrow(metrics)), index(metrics))
   tree.merge.xts(mclapply(metrics, function(m) {
-    # TODO use rolling limits over window
     q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE, type = 1)
     d <- q[3] - q[1]
     m.c <- m - q[2]
@@ -583,12 +582,36 @@ scale.iqr <- function(metrics, prob = 0.1) {
   }))
 }
 
-find.outliers.ecdf <- function(metrics, width) {
+find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
+  ## TODO remember last anomaly position and reset after it
   tree.merge.xts(mclapply(metrics, function(m) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
-      pf <- ecdf(as.numeric(w[1:width-1]))
-      pl <- pf(w[width])
-      min(pl, 1 - pl)
+      prev <- as.numeric(w[1:width-1])
+      l <- last(w)
+      q = quantile(prev, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
+      if (q[1] == q[5]) { # was constant
+        if (l == q[1]) {
+          0 # remained the same
+        } else {
+          ## TODO change threshold?
+          1 # constant changed
+        }
+      } else {
+        d = q[4] - q[2]
+        if (d == 0) {
+          if (abs((l - q[3]) / (q[5] - q[1])) > min.score) {
+            3 # outside min-max range
+          } else {
+            0 # inside min-max range
+          }
+        } else {
+          if (abs((l - q[3]) / d) > 5) {
+            2 # outside iqr range
+          } else {
+            0 # inside iqr range
+          }
+        }
+      }
     })
   }))
 }
