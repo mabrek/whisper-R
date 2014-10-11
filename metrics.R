@@ -569,6 +569,20 @@ find.outliers.iqr <- function(metrics, prob = 0.1, min.score = 5, max.n = 5) {
   }))
 }
 
+scale.iqr <- function(metrics, prob = 0.1) {
+  all.na <- xts(rep.int(NA, nrow(metrics)), index(metrics))
+  tree.merge.xts(mclapply(metrics, function(m) {
+    q <- quantile(m, probs = c(prob, 0.5, 1 - prob), na.rm = TRUE, type = 1)
+    d <- q[3] - q[1]
+    m.c <- m - q[2]
+    if (d > 0) {
+      abs(m.c / d)
+    } else {
+      all.na
+    }
+  }))
+}
+
 find.outliers.ecdf <- function(metrics, width) {
   tree.merge.xts(mclapply(metrics, function(m) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
