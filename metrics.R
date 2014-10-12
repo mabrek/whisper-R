@@ -526,7 +526,12 @@ decompose.median <- function(metrics, period) {
 }
 
 non.seasonal.proportion <- function(metrics, decomposed.metrics) {
-  sapply(abs(metrics - decomposed.metrics$trend - decomposed.metrics$seasonal), sum, na.rm=T)/sapply(abs(decomposed.metrics$seasonal), sum, na.rm=T)
+  remainder <- abs(metrics - decomposed.metrics$trend - decomposed.metrics$seasonal)
+  seasonal <- abs(decomposed.metrics$seasonal)
+  sapply(colnames(metrics), function(m) {
+    cc <- complete.cases(remainder[,m], seasonal[,m])
+    sum(remainder[cc, m], na.rm = TRUE) / sum(seasonal[cc, m], na.rm = TRUE)
+  })
 }
 
 maybe.deseason <- function(metrics, period, proportion = 0.3) {
