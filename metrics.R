@@ -551,7 +551,6 @@ maybe.diff <- function(metrics, only.diff = 2, both = 10) {
   od <- d[, !is.na(d.p) & (d.p < only.diff), drop = FALSE]
   other <- exclude.columns(od, metrics)
   bd <- d[, !is.na(d.p) & (only.diff <= d.p) & (d.p < both), drop = FALSE]
-  print(names(bd))
   rd <- merge.xts(od, bd)
   names(rd) <- paste(names(rd), "diff", sep = ".")
   merge.xts(rd, other)
