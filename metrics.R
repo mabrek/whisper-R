@@ -170,6 +170,13 @@ filter.metrics <- function(metrics, change.threshold=0.01) {
           ]
 }
 
+scale.range <- function(metrics) {
+  ranges <- apply(metrics, 2, range, na.rm=TRUE)
+  mins = matrix(ranges[1,], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
+  maxs = matrix(ranges[2,], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
+  (metrics - mins) / (maxs - mins)
+}
+
 get.relative.time <- function(metrics) {
   as.numeric(index(metrics) - min(index(metrics)))
 }
