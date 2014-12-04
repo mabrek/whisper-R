@@ -313,8 +313,13 @@ multiplot.numbers <- function(metrics, limit=15, vline=NA) {
   k <- min(n, limit)
  repeat {
     m <- data[, i:k, drop=FALSE]
+    if (length(colnames(m)) == 0) {
+      labels = 1:ncol(m)
+    } else {
+      labels = colnames(m)
+    }
     df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
-                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = colnames(m)),
+                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = labels),
                      as.vector(coredata(m)))
     names(df) <- c("Index", "Series", "Value")
     p <- ggplot(data = df) + geom_path(aes(x = Index, y = Value), na.rm=TRUE) + xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0))
