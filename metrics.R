@@ -62,13 +62,17 @@ read.jmeter.csv <- function(file.name) {
     drop=FALSE))
 }
 
-get.rates <- function(jmeter, interval.seconds) {
+aggregate.jmeter <- function(jmeter, interval.seconds) {
   ticks <- align.time(index(jmeter), interval.seconds)
   success <- as.xts(aggregate(jmeter[,"success"] == 1, ticks, sum)) / interval.seconds
   error <- as.xts(aggregate(jmeter[,"success"] == 0, ticks, sum)) / interval.seconds
-  rates <- merge.xts(success, error)
-  colnames(rates) <- c("success_rate", "error_rate")
-  rates
+  elapsed.min <- as.xts(aggregate(jmeter[,"elapsed"], ticks, min, na.rm = TRUE))
+  elapsed.max <- as.xts(aggregate(jmeter[,"elapsed"], ticks, max, na.rm = TRUE))
+  elapsed.median <- as.xts(aggregate(jmeter[,"elapsed"], ticks, median, na.rm = TRUE))
+  elapsed.percentile99 <- as.xts(aggregate(jmeter[,"elapsed"], ticks, quantile, probs = c(0.99), na.rm = TRUE))
+  aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99)
+  colnames(aggregated) <- c("jmeter.success.rate", "jmeter.error.rate", "jmeter.elapsed.min", "jmeter.elapsed.max", "jmeter.elapsed.median", "jmeter.elapsed.percentile99")
+  aggregated
 }
 
 heatmap <- function(metric, bins=500) {
