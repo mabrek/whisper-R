@@ -132,7 +132,8 @@ filter.codahale_like <- function(metrics) {
   columns <- colnames(metrics)
   counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|SpeculativeRetries|MemtableSwitchCount)\\.value$",
                    columns, value=TRUE)
-  metrics[, counters] <- diff(metrics[, counters, drop=FALSE], na.pad=TRUE)
+  metrics[1, counters[which(is.na(metrics[1, counters]))]] <- 0
+  metrics[, counters] <- diff(na.locf(metrics[, counters, drop=FALSE]), na.pad=TRUE)
   metrics
 }
 
