@@ -262,7 +262,7 @@ filter.colnames <- function(pattern, metrics, ...) {
           drop=FALSE]
 }
 
-multiplot <- function(metrics, limit=50) {
+multiplot.nomarks <- function(metrics, limit=50) {
   if (ncol(metrics) == 0)
     return(NULL)
   data <- metrics[,
@@ -302,7 +302,7 @@ multiplot <- function(metrics, limit=50) {
   }
 }
 
-multiplot.numbers <- function(metrics, limit=15, vline=NA) {
+multiplot <- function(metrics, limit=15, vline=NA) {
  # TODO generalize paging through columns
  data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
@@ -342,7 +342,7 @@ multiplot.numbers <- function(metrics, limit=15, vline=NA) {
 }
 
 view <- function(pattern, metrics, limit = 15) {
-  multiplot.numbers(filter.colnames(pattern, metrics, ignore.case = TRUE),
+  multiplot(filter.colnames(pattern, metrics, ignore.case = TRUE),
                     limit = limit)
 }
 
@@ -358,7 +358,7 @@ multiplot.sorted <- function(metrics, comparison, decreasing=TRUE, ...) {
   colnames(data) <- paste("[", sort.order, "]",
                           comparison[sort.order],
                           names(metrics)[sort.order])
-  multiplot.numbers(data, ...)
+  multiplot(data, ...)
 }
 
 robust.histogram <- function(x, probs=c(0.01, 0.99), ...) {
