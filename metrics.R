@@ -595,11 +595,11 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
             ## TODO change threshold?
             1 # constant changed
           }
-        } else {
+        } else { # wasn't constant
           dq = q[4] - q[2]
           r = q[5] - q[1]
           lc = l - q[3]
-          if (dq == 0) {
+          if (dq == 0) { # majority ~= median
             if (abs(lc / r) > 1) {
               3 # outside min-max range
             } else {
@@ -610,7 +610,7 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
                 & (abs(lc / r) > 1)) {
               2 # outside iqr and min-max range
             } else {
-              0 # inside iqr range
+              0 # inside iqr or min-max range
             }
           }
         }
