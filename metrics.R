@@ -585,7 +585,11 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
           0 # remained NA
         }
       } else if (is.na(l)) {
-        NA
+        if (all(is.na(w[2:width-1])) {
+          5 # disappeared
+        } else {
+          NA
+        }
       } else {
         q = quantile(prev, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
         if (q[1] == q[5]) { # was constant
