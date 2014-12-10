@@ -627,3 +627,25 @@ sum.xts.rows <- function(metrics) {
   xts(rowSums(metrics, na.rm=T), index(metrics))
 }
 
+find.sparse <- function(metrics, fill = 0.1) {
+  l = nrow(metrics)
+  metrics[,
+          which(sapply(metrics, function(v) {(sum(is.na(v)) / l) > fill})),
+          drop=FALSE]
+}
+
+svd.prepare <- function(metrics) {
+  filter.metrics(metrics[complete.cases(metrics)])
+}
+
+svd.run <- function(metrics) {
+  svd(scale(metrics))
+}
+
+svd.u.xts <- function(udv, metrics) {
+  xts(udv$u, order.by=index(metrics))
+}
+
+svd.dv <- function(udv) {
+  apply(diag(udv$d) %*% t(udv$v), 2, function(x) {abs(x)/sum(abs(x))})
+}
