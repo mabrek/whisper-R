@@ -152,7 +152,7 @@ filter.metrics <- function(metrics, change.threshold=0.01) {
     metrics <- cbind(metrics, cpu.sums)
   }
   metrics <- metrics[,
-                     !grepl("df_complex\\.used\\.value$|\\.cpu\\.[[:digit:]]+\\.cpu\\.|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
+                     !grepl("df_complex\\.used\\.value$|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
                      drop=FALSE]
   columns <- colnames(metrics)
   medians <- apply(metrics, 2, median, na.rm=TRUE)
