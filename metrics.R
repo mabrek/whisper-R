@@ -585,7 +585,7 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
           0 # remained NA
         }
       } else if (is.na(l)) {
-        if (all(is.na(w[2:width-1])) {
+        if (all(is.na(w[2:width-1]))) {
           5 # disappeared
         } else {
           NA
