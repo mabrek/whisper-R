@@ -649,3 +649,7 @@ svd.u.xts <- function(udv, metrics) {
 svd.dv <- function(udv) {
   apply(diag(udv$d) %*% t(udv$v), 2, function(x) {abs(x)/sum(abs(x))})
 }
+
+non.zero.columns <- function(metrics) {
+  colnames(metrics)[which(colSums(metrics > 0, na.rm=TRUE) > 0)]
+}
