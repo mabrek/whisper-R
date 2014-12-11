@@ -350,6 +350,7 @@ sameplot <- function(metrics) {
   autoplot(metrics, facet=NULL)
 }
 
+# TODO pass function to compare
 multiplot.sorted <- function(metrics, comparison, decreasing=TRUE, ...) {
   sort.order <- order(comparison, decreasing = decreasing)
   data <- metrics[,
