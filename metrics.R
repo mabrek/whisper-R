@@ -561,6 +561,7 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
   merge.xts(seasonal, other)
 }
 
+# TODO use unit root test
 maybe.diff <- function(metrics, only.diff = 2, both = 10) {
   d <- diff(metrics)
   q <- simplify2array(mclapply(d, quantile, probs=c(0.25, 0.5, 0.75), na.rm = TRUE))
