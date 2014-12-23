@@ -125,15 +125,18 @@ filter.statsd <- function(metrics) {
                   invert = TRUE)
 }
 
-filter.codahale_like <- function(metrics) {
+filter.codahale_like <- function(metrics, counter.maxgap=1) {
   metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$|\\.meanRate$|\\.publish\\.value$|MemtableColumnsCount\\.value$",
                              metrics,
                              invert = TRUE)
+  metrics <- metrics[, which(sapply(metrics[], function(v) {any(!is.na(v))})),
+                     drop=FALSE]
   columns <- colnames(metrics)
-  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$",
+  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$_count$",
                    columns, value=TRUE)
   metrics[1, counters[which(is.na(metrics[1, counters]))]] <- 0
-  metrics[, counters] <- diff(na.locf(metrics[, counters, drop=FALSE]), na.pad=TRUE)
+  # TODO positive only diff, don't interpolate on negative jumps
+  metrics[, counters] <- diff(na.locf(na.approx(metrics[, counters, drop=FALSE], maxgap=counter.maxgap)), na.pad=TRUE)
   metrics
 }
 
