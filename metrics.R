@@ -639,10 +639,6 @@ find.sparse <- function(metrics, fill = 0.1) {
           drop=FALSE]
 }
 
-svd.prepare <- function(metrics) {
-  filter.metrics(metrics[complete.cases(metrics)])
-}
-
 rankscale <- function(metrics) {
   sapply(metrics, function(m) {
     cd <- coredata(m)
@@ -650,9 +646,6 @@ rankscale <- function(metrics) {
     q <- quantile(r, probs=c(0, 0.5, 1), type=1)
     (r - q[2])/(q[3] - q[1])
   })
-}
-svd.run <- function(metrics) {
-  svd(scale(metrics))
 }
 
 svd.u.xts <- function(udv, metrics) {
