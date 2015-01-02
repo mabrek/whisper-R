@@ -652,6 +652,7 @@ svd.u.xts <- function(udv, metrics) {
   xts(udv$u, order.by=index(metrics))
 }
 
+# then use multiplot.sorted(metrics, dv[component,])
 svd.dv <- function(udv) {
   apply(diag(udv$d) %*% t(udv$v), 2, function(x) {abs(x)/sum(abs(x))})
 }
