@@ -643,13 +643,15 @@ find.sparse <- function(metrics, fill = 0.1) {
           drop=FALSE]
 }
 
-rankscale <- function(metrics) {
-  sapply(metrics, function(m) {
-    cd <- coredata(m)
-    r <- match(m, sort(unique(m)))
-    q <- quantile(r, probs=c(0, 0.5, 1), type=1)
-    (r - q[2])/(q[3] - q[1])
-  })
+svd.prepare <- function(metrics) {
+  m = metrics[2:nrow(metrics),] # first row is NA for counters
+  m = exclude.columns(find.sparse(m), m)
+  m = exclude.columns(find.constant(m), m)
+  na.approx(m)
+}
+
+svd.run <- function(metrics) {
+  svd(scale(metrics)) # scale() apmlifiers outliers in svd results 
 }
 
 svd.u.xts <- function(udv, metrics) {
