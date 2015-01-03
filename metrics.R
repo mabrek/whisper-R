@@ -234,6 +234,10 @@ filter.any.na <- function(metrics) {
           drop=FALSE]
 }
 
+find.any.na <- function(metrics) {
+  metrics[, which(sapply(metrics, function(v) {any(is.na(v))})), drop=FALSE]
+}
+
 find.na <- function(metrics, subset=1:nrow(metrics)) {
   metrics[,
           which(sapply(metrics[subset,], function(v) {all(is.na(v))})),
