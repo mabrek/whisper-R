@@ -568,19 +568,6 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
   merge.xts(seasonal, other)
 }
 
-# TODO use unit root test
-maybe.diff <- function(metrics, only.diff = 2, both = 10) {
-  d <- diff(metrics)
-  q <- simplify2array(mclapply(d, quantile, probs=c(0.25, 0.5, 0.75), na.rm = TRUE))
-  d.p <- abs((q[3,] - q[1,])/q[2,])
-  od <- d[, !is.na(d.p) & (d.p < only.diff), drop = FALSE]
-  other <- exclude.columns(od, metrics)
-  bd <- d[, !is.na(d.p) & (only.diff <= d.p) & (d.p < both), drop = FALSE]
-  rd <- merge.xts(od, bd)
-  names(rd) <- paste(names(rd), "diff", sep = ".")
-  merge.xts(rd, other)
-}
-
 find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
   tree.merge.xts(mclapply(metrics, function(m) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
