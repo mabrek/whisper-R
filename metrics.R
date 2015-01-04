@@ -653,3 +653,16 @@ svd.dv <- function(udv) {
 non.zero.columns <- function(metrics) {
   colnames(metrics)[which(colSums(metrics > 0, na.rm=TRUE) > 0)]
 }
+
+mc.xts.apply <- function(metrics, FUN, ...) {
+  tree.merge.xts(mclapply(metrics, function(m) {
+    FUN(m, ...)
+  }))
+}
+
+diff.median <- function(metrics, window) {
+  mc.xts.apply(metrics, function(m) {
+    diff(rollapply(m, window, fill=NA, align="center", FUN=median, na.rm=T),
+         na.pad=TRUE)
+  })
+}
