@@ -660,6 +660,7 @@ mc.xts.apply <- function(metrics, FUN, ...) {
   }))
 }
 
+# then find outliers to get mean shifts
 diff.median <- function(metrics, window) {
   mc.xts.apply(metrics, function(m) {
     diff(rollapply(m, window, fill=NA, align="center", FUN=median, na.rm=T),
