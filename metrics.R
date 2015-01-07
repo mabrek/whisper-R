@@ -668,11 +668,18 @@ diff.median <- function(metrics, window) {
   })
 }
 
+widen <- function(x, width) {
+  lags <- tree.merge.xts(lapply(-width : width, function(n) {
+    lx <- lag.xts(x, n)
+    lx[is.na(lx)] <- FALSE
+    lx
+  }))
+  apply(lags, 1, sum) > 0
+}
+
 # assumes boolean xts input, treats NAs as false
-cooccurences <- function(x, metrics) {
-  # TODO make x wider by ORing with +- lagged x
-  x <- as.vector(x)
-  x[is.na(x)] <- FALSE
+cooccurences <- function(x, metrics, wider = 0) {
+  x <- as.vector(widen(x, wider))
   metrics[is.na(metrics)] <- FALSE
   colSums(metrics & x)
 }
