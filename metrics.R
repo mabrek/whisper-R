@@ -674,5 +674,5 @@ cooccurences <- function(x, metrics) {
   x <- as.vector(x)
   x[is.na(x)] <- FALSE
   metrics[is.na(metrics)] <- FALSE
-  colSums(metrics | x)
+  colSums(metrics & x)
 }
