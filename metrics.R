@@ -10,6 +10,8 @@ library(cluster)
 library(fpc)
 library(utils)
 library(quantreg)
+library(TSclust)
+library(multitaper)
 
 lsd <- function(pos=1) {
   names(grep("^function$",
@@ -682,4 +684,14 @@ cooccurences <- function(x, metrics, wider = 0) {
   x <- as.vector(widen(x, wider))
   metrics[is.na(metrics)] <- FALSE
   colSums(metrics & x)
+}
+
+find.periods <- function(metrics, ...) {
+  nfp <- mclapply(metrics, function(m) {
+    spec <- spec.mtm(m, plot=F, Ftest=T, ...)
+    data.frame(name=names(m)[1], freq=spec$freq, Ftest=spec$mtm$Ftest)
+  })
+  result <- rbind.fill(nfp)
+  result$name <- as.character(result$name)
+  result[order(result$Ftest),]
 }
