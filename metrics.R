@@ -272,20 +272,20 @@ filter.colnames <- function(pattern, metrics, ...) {
 }
 
 multiplot <- function(metrics, limit=15, vline=NA) {
- data <- metrics[,
-                  which(sapply(metrics, function(v) {!all(is.na(v))})),
-                  drop=FALSE]
+ data <- metrics
+ if (length(colnames(data)) == 0) {
+   colnames(data) <- 1:ncol(data)
+ }
+ data <- data[,
+              which(sapply(data, function(v) {any(!is.na(v))})),
+              drop=FALSE]
   r <- nrow(data)
   n <- ncol(data)
   i <- 1
   k <- min(n, limit)
  repeat {
     m <- data[, i:k, drop=FALSE]
-    if (length(colnames(m)) == 0) {
-      labels = 1:ncol(m)
-    } else {
-      labels = colnames(m)
-    }
+    labels <- colnames(m)
     df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
                      factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = labels),
                      as.vector(coredata(m)))
