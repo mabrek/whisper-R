@@ -640,7 +640,7 @@ svd.prepare <- function(metrics) {
 }
 
 svd.run <- function(metrics) {
-  svd(scale(metrics)) # scale() apmlifiers outliers in svd results 
+  svd(scale(metrics)) # scale() amplifiers outliers in svd results 
 }
 
 svd.u.xts <- function(udv, metrics) {
