@@ -271,48 +271,7 @@ filter.colnames <- function(pattern, metrics, ...) {
           drop=FALSE]
 }
 
-multiplot.nomarks <- function(metrics, limit=50) {
-  if (ncol(metrics) == 0)
-    return(NULL)
-  data <- metrics[,
-                  which(sapply(metrics, function(v) {!all(is.na(v))})),
-                  drop=FALSE]
-  r <- nrow(data)
-  n <- ncol(data)
-  if (r == 0 | n == 0)
-    return(NULL)
-  i <- 1
-  k <- min(n, limit)
-  repeat {
-    m <- data[, i:k, drop=FALSE]
-    ms <- sapply(m, function(y) {
-      ave(coredata(y),
-          seq.int(r) %/% max(3, r %/% 500),
-          FUN=function(x) {mean(x, na.rm=T)})
-    })
-    df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
-                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = colnames(m)),
-                     as.vector(coredata(m)),
-                     as.vector(coredata(ms)))
-    names(df) <- c("Index", "Series", "Value", "Smooth")
-    p <- ggplot(data = df) + geom_point(aes(x = Index, y = Value), na.rm=TRUE, shape=".") + geom_path(aes(x = Index, y = Smooth), na.rm=TRUE, color="blue") + xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0), axis.text.y = element_blank(), axis.ticks.y = element_blank())
-    print(p)
-    if (k >= n) {
-      break
-    } else {
-      choice <- readline("empty line to continue, anything else to stop :")
-      if (choice == "") {
-        i <- i + limit
-        k <- min(n, k + limit)
-      } else {
-        break
-      }
-    }
-  }
-}
-
 multiplot <- function(metrics, limit=15, vline=NA) {
- # TODO generalize paging through columns
  data <- metrics[,
                   which(sapply(metrics, function(v) {!all(is.na(v))})),
                   drop=FALSE]
