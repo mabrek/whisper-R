@@ -656,7 +656,7 @@ find.periods <- function(metrics, ...) {
   result[order(result$Ftest),]
 }
 
-# then use multiplot.sorted(metrics, kw[,component])
-ica.kw <- function(ica) {
-  abs(ica$K %*% ica$W)
+# then use multiplot.sorted(metrics, a[component,])
+ica.a <- function(ica) {
+  apply(ica$A, 2, function(x) {abs(x)/sum(abs(x))})
 }
