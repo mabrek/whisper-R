@@ -135,7 +135,7 @@ filter.codahale_like <- function(metrics, counter.maxgap=1) {
   metrics <- metrics[, which(sapply(metrics[], function(v) {any(!is.na(v))})),
                      drop=FALSE]
   columns <- colnames(metrics)
-  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$",
+  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$|\\.total\\.count$",
                    columns, value=TRUE)
   metrics[1, counters[which(is.na(metrics[1, counters]))]] <- 0
   # TODO positive only diff, don't interpolate on negative jumps
