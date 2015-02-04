@@ -316,8 +316,8 @@ view <- function(pattern, metrics, limit = 15) {
                     limit = limit)
 }
 
-sameplot <- function(metrics) {
-  autoplot(metrics, facet=NULL)
+sameplot <- function(metrics, ...) {
+  autoplot(metrics, facet=NULL, ...)
 }
 
 # TODO pass function to compare
