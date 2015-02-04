@@ -69,10 +69,11 @@ aggregate.jmeter <- function(jmeter, interval.seconds) {
   ticks <- align.time(index(jmeter), interval.seconds)
   success <- as.xts(aggregate(jmeter[,"success"] == 1, ticks, sum)) / interval.seconds
   error <- as.xts(aggregate(jmeter[,"success"] == 0, ticks, sum)) / interval.seconds
-  elapsed.min <- as.xts(aggregate(jmeter[,"elapsed"], ticks, min, na.rm = TRUE))
-  elapsed.max <- as.xts(aggregate(jmeter[,"elapsed"], ticks, max, na.rm = TRUE))
-  elapsed.median <- as.xts(aggregate(jmeter[,"elapsed"], ticks, median, na.rm = TRUE))
-  elapsed.percentile99 <- as.xts(aggregate(jmeter[,"elapsed"], ticks, quantile, probs = c(0.99), na.rm = TRUE))
+  elapsed.raw <- jmeter[,"elapsed"] * 1000 # convert to microseconds
+  elapsed.min <- as.xts(aggregate(elapsed.raw, ticks, min, na.rm = TRUE))
+  elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
+  elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median, na.rm = TRUE))
+  elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
   aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99)
   colnames(aggregated) <- c("jmeter.success.rate", "jmeter.error.rate", "jmeter.elapsed.min", "jmeter.elapsed.max", "jmeter.elapsed.median", "jmeter.elapsed.percentile99")
   aggregated
