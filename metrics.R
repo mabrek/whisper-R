@@ -188,7 +188,7 @@ get.relative.time <- function(metrics) {
   as.numeric(index(metrics) - min(index(metrics)))
 }
 
-get.correlation <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
+get.abs.correlation <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
   x <- coredata(x[subset])
   nx <- sum(!is.na(x))
   m <- coredata(metrics[subset,])
@@ -210,11 +210,9 @@ get.correlation <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, me
   }))
 }
 
-find.correlated <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
-  metrics[,
-          order(get.correlation(x, metrics, subset, complete, method),
-                decreasing=TRUE),
-          drop=FALSE]
+## better for metrics with linear trends
+get.diff.correlation <- function(x, metrics, ...) {
+  get.abs.correlation(diff(x), diff(metrics), ...)
 }
 
 exclude.columns <- function(what, from) {
