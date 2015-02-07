@@ -531,7 +531,7 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
 
 find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
   tree.merge.xts(mclapply(metrics, function(m) {
-    rollapply(m, 2 * width + 1, fill = NA, align = "center", FUN = function(w) {
+    rollapply(m, 2 * width + 1, fill = NA, align = "center", partial = TRUE, FUN = function(w) {
       # TODO check ranges as in filter metrics?
       left <- as.numeric(w[1:width])
       current <- as.numeric(w[width + 1])
