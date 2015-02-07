@@ -270,6 +270,7 @@ filter.colnames <- function(pattern, metrics, ...) {
           drop=FALSE]
 }
 
+## TODO bring back dotted version
 multiplot <- function(metrics, limit=15, vline=NA) {
  data <- metrics
  if (length(colnames(data)) == 0) {
@@ -528,6 +529,7 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
   merge.xts(seasonal, other)
 }
 
+## TODO became constant
 find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
   tree.merge.xts(mclapply(metrics, function(m) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
@@ -552,7 +554,6 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
           if (l == q[1]) {
             0 # remained the same
           } else {
-            ## TODO change threshold?
             1 # constant changed
           }
         } else { # wasn't constant
