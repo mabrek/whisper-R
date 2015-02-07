@@ -558,7 +558,7 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
           }
         } else { # wasn't constant
           rr <- range(right, na.rm = TRUE)
-          if (is.finite(rr[1]) & (rr[1] == rr[2]) & (last(left) != rr[1])) {
+          if (is.finite(rr[1]) & (rr[1] == rr[2]) & (is.na(last(left)) | (last(left) != rr[1]))) {
             6 # became constant
           } else {
             dq <- q[4] - q[2]
