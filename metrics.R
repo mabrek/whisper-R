@@ -529,45 +529,54 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
   merge.xts(seasonal, other)
 }
 
-## TODO became constant, disappeared (use 2 sided centered window 2*width+1)
 find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
   tree.merge.xts(mclapply(metrics, function(m) {
-    rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
-      ## TODO check ranges as in filter metrics
-      prev <- as.numeric(w[1:width-1])
-      l <- last(w)
-      if (all(is.na(prev))) {
-        if (!is.na(l)) {
+    rollapply(m, 2 * width + 1, fill = NA, align = "center", FUN = function(w) {
+      # TODO check ranges as in filter metrics?
+      left <- as.numeric(w[1:width])
+      current <- as.numeric(w[width + 1])
+      right <- as.numeric(w[(width + 1):(2 * width + 1)]) # includes current
+      if (all(is.na(left))) {
+        if (!is.na(current)) {
           4 # appeared
         } else {
-          0 # remained NA
+          -4 # remained NA
         }
-      } else if (is.na(l)) {
-        NA
-      } else {
-        q = quantile(prev, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
+      } else if (is.na(current)) {
+        if (!is.na(last(left)) & all(is.na(right))) {
+          5 # disappeared
+        } else {
+          NA
+        }
+      } else { # current is not NA
+        q <- quantile(left, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
         if (q[1] == q[5]) { # was constant
-          if (l == q[1]) {
-            0 # remained the same
+          if (current == q[1]) {
+            -1 # remained the same
           } else {
             1 # constant changed
           }
         } else { # wasn't constant
-          dq = q[4] - q[2]
-          r = q[5] - q[1]
-          lc = l - q[3]
-          if (dq == 0) { # majority ~= median
-            if (abs(lc / r) > 1) {
-              3 # outside min-max range
-            } else {
-              0 # inside min-max range
-            }
+          rr <- range(right, na.rm = TRUE)
+          if (is.finite(rr[1]) & (rr[1] == rr[2]) & (last(left) != rr[1])) {
+            6 # became constant
           } else {
-            if ((abs(lc / dq) > min.score)
-                & (abs(lc / r) > 1)) {
-              2 # outside iqr and min-max range
+            dq <- q[4] - q[2]
+            r <- q[5] - q[1]
+            lc <- current - q[3]
+            if (dq == 0) { # majority ~= median
+              if (abs(lc / r) > 1) {
+                3 # outside min-max range
+              } else {
+                -3 # inside min-max range
+              }
             } else {
-              0 # inside iqr or min-max range
+              if ((abs(lc / dq) > min.score)
+                  & (abs(lc / r) > 1)) {
+                2 # outside iqr and min-max range
+              } else {
+                -2 # inside iqr or min-max range
+              }
             }
           }
         }
