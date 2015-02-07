@@ -529,7 +529,7 @@ maybe.deseason <- function(metrics, period, proportion = 0.3) {
   merge.xts(seasonal, other)
 }
 
-## TODO became constant
+## TODO became constant, disappeared (use 2 sided centered window 2*width+1)
 find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
   tree.merge.xts(mclapply(metrics, function(m) {
     rollapply(m, width, fill = NA, align = "right", FUN = function(w) {
@@ -543,11 +543,7 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
           0 # remained NA
         }
       } else if (is.na(l)) {
-        if (all(is.na(w[2:width-1]))) {
-          5 # disappeared
-        } else {
-          NA
-        }
+        NA
       } else {
         q = quantile(prev, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
         if (q[1] == q[5]) { # was constant
