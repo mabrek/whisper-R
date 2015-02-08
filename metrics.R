@@ -215,6 +215,12 @@ get.diff.correlation <- function(x, metrics, ...) {
   get.abs.correlation(diff(x), diff(metrics), ...)
 }
 
+get.periodogram.distance <- function(x, metrics, subset=1:nrow(metrics)) {
+  simplify2array(mclapply(metrics, function(m) {
+    diss.INT.PER(as.vector(x[subset]), as.vector(m[subset]), normalize=T)
+  }))
+}
+
 exclude.columns <- function(what, from) {
   from[,
        setdiff(colnames(from), colnames(what)),
