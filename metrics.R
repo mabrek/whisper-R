@@ -658,8 +658,8 @@ cooccurences <- function(x, metrics, wider = 0) {
 
 find.periods <- function(metrics, ...) {
   nfp <- mclapply(metrics, function(m) {
-    spec <- spec.mtm(m, plot=F, Ftest=T, ...)
-    data.frame(name=names(m)[1], freq=spec$freq, Ftest=spec$mtm$Ftest)
+    spec <- spec.mtm(as.ts(m), plot=F, Ftest=T, ...)
+    data.frame(name=names(m)[1], period=1/spec$freq, Ftest=spec$mtm$Ftest)
   })
   result <- rbind.fill(nfp)
   result$name <- as.character(result$name)
