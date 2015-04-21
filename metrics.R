@@ -677,10 +677,15 @@ cooccurences <- function(x, metrics, wider = 0) {
   colSums(metrics & x)
 }
 
-find.periods <- function(metrics, ...) {
+find.periods <- function(metrics, significance = 0.99, ...) {
   nfp <- mclapply(metrics, function(m) {
-    spec <- spec.mtm(as.ts(m), plot=F, Ftest=T, ...)
-    data.frame(name=names(m)[1], period=1/spec$freq, Ftest=spec$mtm$Ftest)
+    spec <- spec.mtm(as.ts(m), plot=FALSE, Ftest=TRUE, returnZeroFreq=FALSE, ...)
+    f.sig <- spec$mtm$Ftest > qf(significance, 2, 2*spec$mtm$k-2)
+    if (any(f.sig, na.rm=TRUE)) {
+      data.frame(name=names(m)[1], period=1/spec$freq[f.sig], Ftest=spec$mtm$Ftest[f.sig])
+    } else {
+      data.frame()
+    }
   })
   result <- rbind.fill(nfp)
   result$name <- as.character(result$name)
