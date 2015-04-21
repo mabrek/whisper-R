@@ -79,6 +79,27 @@ aggregate.jmeter <- function(jmeter, interval.seconds) {
   aggregated
 }
 
+read.fping <- function(file.name) {
+  as.xts(read.zoo(
+    file.name,
+    col.names=c('time', 'seq', 'rtt'),
+    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00:00")}))
+}
+
+aggregate.fping <- function(fping, interval.seconds) {
+  ticks <- align.time(index(fping), interval.seconds)
+  loss.raw <- diff(fping[, "seq"], na.pad=T) - 1
+  loss <- as.xts(aggregate(loss.raw, ticks, sum, na.rm = TRUE)) / interval.seconds
+  rtt.raw <- fping[, "rtt"] * 1000 # convert to microseconds
+  rtt.min <- as.xts(aggregate(rtt.raw, ticks, min, na.rm = TRUE))
+  rtt.max <- as.xts(aggregate(rtt.raw, ticks, max, na.rm = TRUE))
+  rtt.median <- as.xts(aggregate(rtt.raw, ticks, median, na.rm = TRUE))
+  rtt.percentile99 <- as.xts(aggregate(rtt.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
+  aggregated <- merge.xts(loss, rtt.min, rtt.max, rtt.median, rtt.percentile99)
+  colnames(aggregated) <- c("loss", "fping.rtt.min", "fping.rtt.max", "fping.rtt.median", "fping.rtt.percentile99")
+  aggregated
+}
+
 heatmap <- function(metric, bins=500) {
   ggplot(fortify(metric, melt=T), aes(Index, Value)) + stat_bin2d(bins=bins) + scale_fill_gradientn(colours=rainbow(7)) + facet_grid(Series ~ .)
 }
