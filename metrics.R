@@ -712,9 +712,12 @@ explore.tsne <- function(embedding, metrics) {
     app <- 
         shinyApp(
             ui = fluidPage(
-                titlePanel("select points to draw series")),
+                helpText("select points to draw series"),
+                plotOutput("embedding_plot", click = "embedding_click")),
             server = function(input, output) {
+                output$embedding_plot <- renderPlot({
+                    qplot(x = embedding[,1], y = embedding[,2])
+                })
             })
     runApp(app)
 }
-
