@@ -709,14 +709,20 @@ remove.variable <- function(metrics, variable) {
 }
 
 explore.tsne <- function(embedding, metrics) {
+    embedding_df <- data.frame(x = embedding[,1], y = embedding[,2])
     app <- 
         shinyApp(
             ui = fluidPage(
                 helpText("select points to draw series"),
-                plotOutput("embedding_plot", click = "embedding_click")),
+                # TODO allow zooming
+                plotOutput("embedding_plot", click = "embedding_click"),
+                verbatimTextOutput("info")),
             server = function(input, output) {
                 output$embedding_plot <- renderPlot({
-                    qplot(x = embedding[,1], y = embedding[,2])
+                    ggplot(embedding_df, aes(x,y)) + geom_point()
+                })
+                output$info <- renderPrint({
+                    nearPoints(embedding_df, input$embedding_click)
                 })
             })
     runApp(app)
