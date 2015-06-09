@@ -12,6 +12,9 @@ library(quantreg)
 library(TSclust)
 library(multitaper)
 library(fastICA)
+library(tsne)
+library(shiny)
+library(dygraphs)
 
 lsd <- function(pos=1) {
   names(grep("^function$",
@@ -704,3 +707,14 @@ remove.variable <- function(metrics, variable) {
   names(m.r) <- names(metrics)
   m.r
 }
+
+explore.tsne <- function(embedding, metrics) {
+    app <- 
+        shinyApp(
+            ui = fluidPage(
+                titlePanel("select points to draw series")),
+            server = function(input, output) {
+            })
+    runApp(app)
+}
+
