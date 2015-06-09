@@ -723,11 +723,9 @@ explore.tsne <- function(embedding, metrics) {
                     ggplot(embedding_df, aes(x,y)) + geom_point()
                 })
                 output$series <- renderDygraph({
-                    dygraph(metrics[,
-                                    rownames(
-                                        nearPoints(embedding_df, 
-                                                   input$embedding_click))[1],
-                                    drop = FALSE])
+                    n <- rownames(nearPoints(embedding_df,
+                                             input$embedding_click))[1]
+                    dygraph(metrics[, n, drop = FALSE], main = n)
                 })
             })
     runApp(app)
