@@ -710,6 +710,7 @@ remove.variable <- function(metrics, variable) {
 
 explore.tsne <- function(embedding, metrics) {
     embedding_df <- data.frame(x = embedding[,1], y = embedding[,2])
+    rownames(embedding_df) <- colnames(metrics)
     app <- 
         shinyApp(
             ui = fluidPage(
@@ -722,7 +723,7 @@ explore.tsne <- function(embedding, metrics) {
                     ggplot(embedding_df, aes(x,y)) + geom_point()
                 })
                 output$info <- renderPrint({
-                    nearPoints(embedding_df, input$embedding_click)
+                    rownames(nearPoints(embedding_df, input$embedding_click))
                 })
             })
     runApp(app)
