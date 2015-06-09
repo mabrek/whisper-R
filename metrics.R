@@ -717,13 +717,17 @@ explore.tsne <- function(embedding, metrics) {
                 helpText("select points to draw series"),
                 # TODO allow zooming
                 plotOutput("embedding_plot", click = "embedding_click"),
-                verbatimTextOutput("info")),
+                dygraphOutput("series")),
             server = function(input, output) {
                 output$embedding_plot <- renderPlot({
                     ggplot(embedding_df, aes(x,y)) + geom_point()
                 })
-                output$info <- renderPrint({
-                    rownames(nearPoints(embedding_df, input$embedding_click))
+                output$series <- renderDygraph({
+                    dygraph(metrics[,
+                                    rownames(
+                                        nearPoints(embedding_df, 
+                                                   input$embedding_click))[1],
+                                    drop = FALSE])
                 })
             })
     runApp(app)
