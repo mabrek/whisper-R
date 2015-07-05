@@ -164,6 +164,7 @@ filter.codahale_like <- function(metrics, counter.maxgap=1) {
   metrics[1, counters[which(is.na(metrics[1, counters]))]] <- 0
   # TODO positive only diff, don't interpolate on negative jumps
   metrics[, counters] <- diff(na.locf(na.approx(metrics[, counters, drop=FALSE], maxgap=counter.maxgap)), na.pad=TRUE)
+  colnames(metrics) <- sub('org.apache.cassandra.metrics.', '', colnames(metrics))
   metrics
 }
 
