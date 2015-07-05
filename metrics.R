@@ -185,6 +185,7 @@ filter.metrics <- function(metrics, change.threshold=0.01) {
   metrics <- metrics[,
                      !grepl("df_complex\\.used\\.value$|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
                      drop=FALSE]
+  # TODO split into 2 functions here
   columns <- colnames(metrics)
   medians <- apply(metrics, 2, median, na.rm=TRUE)
   ranges <- apply(metrics, 2, range, na.rm=TRUE)
