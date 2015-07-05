@@ -1,4 +1,4 @@
-library(plyr)
+library(dplyr)
 library(parallel)
 library(zoo)
 library(ggplot2)
