@@ -76,8 +76,9 @@ aggregate.jmeter <- function(jmeter, interval.seconds) {
   elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
   elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median, na.rm = TRUE))
   elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
-  aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99)
-  colnames(aggregated) <- c("jmeter.success.rate", "jmeter.error.rate", "jmeter.elapsed.min", "jmeter.elapsed.max", "jmeter.elapsed.median", "jmeter.elapsed.percentile99")
+  threads.median <- as.xts(aggregate(jmeter[,"grpThreads"], ticks, median, na.rm = TRUE))
+  aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median)
+  colnames(aggregated) <- c("jmeter.success.rate", "jmeter.error.rate", "jmeter.elapsed.min", "jmeter.elapsed.max", "jmeter.elapsed.median", "jmeter.elapsed.percentile99", "threads.median")
   aggregated
 }
 
@@ -159,6 +160,7 @@ filter.codahale_like <- function(metrics, counter.maxgap=1) {
   metrics <- metrics[, which(sapply(metrics[], function(v) {any(!is.na(v))})),
                      drop=FALSE]
   columns <- colnames(metrics)
+  # TODO jvm.daemon_thread_count is not a counter
   counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$|\\.total\\.count$",
                    columns, value=TRUE)
   metrics[1, counters[which(is.na(metrics[1, counters]))]] <- 0
