@@ -640,17 +640,9 @@ svd.run <- function(metrics) {
   svd(scale(metrics)) # scale() amplifiers outliers in svd results 
 }
 
+# then use multiplot.sorted(metrics, udv$v[,component])
 svd.u.xts <- function(udv, metrics) {
   xts(udv$u, order.by=index(metrics))
-}
-
-# then use multiplot.sorted(metrics, dv[component,])
-svd.dv <- function(udv) {
-  apply(diag(udv$d) %*% t(udv$v), 2, function(x) {abs(x)/sum(abs(x))})
-}
-
-princomp.dv <- function(pr) {
-    apply(diag(pr$sdev) %*% t(pr$loadings), 2, function(x) {abs(x)/sum(abs(x))})
 }
 
 non.zero.columns <- function(metrics) {
