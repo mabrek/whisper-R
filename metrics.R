@@ -708,7 +708,8 @@ remove.variable <- function(metrics, variable) {
   m.r
 }
 
-explore.tsne <- function(embedding, metrics) {
+# works for cmdscale and tsne
+explore.2d <- function(embedding, metrics) {
     embedding_df <- data.frame(x = embedding[,1], y = embedding[,2])
     rownames(embedding_df) <- colnames(metrics)
     app <- 
