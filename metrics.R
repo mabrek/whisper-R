@@ -731,3 +731,11 @@ explore.2d <- function(embedding, metrics) {
             })
     runApp(app)
 }
+
+drop.zero.dist <- function(d) {
+    m <- as.matrix(d)
+    z <- which(m == 0, arr.ind = TRUE)
+    di <- z[z[,1] > z[,2], 1]
+    mu <- m[-di, -di]
+    as.dist(mu)
+}
