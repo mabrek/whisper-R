@@ -197,7 +197,7 @@ filter.metrics <- function(metrics, change.threshold=0.01) {
           & is.finite(ranges[1,])
           & is.finite(ranges[2,])
           & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
-          & abs((ranges[2,] - ranges[1,])/medians) > change.threshold
+          & abs((ranges[2,] - ranges[1,])/medians) > change.threshold # TODO wrong for counters before diff
           & (!grepl("if_octets", columns) | ranges[2,] > 1000)
           & (!grepl("if_packets", columns) | ranges[2,] > 10),
           drop=FALSE
