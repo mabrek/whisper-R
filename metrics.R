@@ -698,11 +698,6 @@ find.periods <- function(metrics, significance = 0.99, ...) {
   result[order(result$Ftest),]
 }
 
-# then use multiplot.sorted(metrics, a[component,])
-ica.a <- function(ica) {
-  apply(ica$A, 2, function(x) {abs(x)/sum(abs(x))})
-}
-
 remove.variable <- function(metrics, variable) {
   lms <- simplify2array(mclapply(metrics, function(m) {
     rq(coredata(m) ~ variable, na.action = na.omit)$residuals
