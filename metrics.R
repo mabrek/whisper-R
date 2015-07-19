@@ -649,6 +649,10 @@ svd.u.xts <- function(udv, metrics) {
   xts(udv$u, order.by=index(metrics))
 }
 
+top.loadings <- function(loadings, n=3) {
+    as.vector(apply(abs(loadings), 2, order, decreasing=T)[1:n,])
+}
+
 non.zero.columns <- function(metrics) {
   colnames(metrics)[which(colSums(metrics > 0, na.rm=TRUE) > 0)]
 }
