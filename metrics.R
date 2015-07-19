@@ -185,6 +185,7 @@ filter.metrics <- function(metrics, change.threshold=0.01) {
       rowSums(metrics[,cl,drop=FALSE], na.rm=TRUE)
     })
   if (length(cpu.sums) > 0) {
+    # TODO make it idempotent
     metrics <- cbind(metrics, cpu.sums)
   }
   metrics <- metrics[,
