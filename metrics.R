@@ -644,7 +644,7 @@ svd.run <- function(metrics) {
   svd(scale(metrics)) # scale() amplifiers outliers in svd results 
 }
 
-# then use multiplot.sorted(metrics, udv$v[,component])
+# then use multiplot.sorted(metrics, abs(udv$v[,component]))
 svd.u.xts <- function(udv, metrics) {
   xts(udv$u, order.by=index(metrics))
 }
