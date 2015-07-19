@@ -144,7 +144,10 @@ get.correlation.matrix <- function(metrics, complete=0.1, method="spearman", fil
 }
 
 get.correlation.distance <- function(metrics, complete=0.1, method="spearman", fill=0.1) {
-  as.dist(1-abs(get.correlation.matrix(metrics, complete, method, fill)))
+  d <- as.dist(1-abs(get.correlation.matrix(metrics, complete, method, fill)))
+  d[d > 1] <- 1
+  d[d < 0] <- 0
+  d
 }
 
 filter.statsd <- function(metrics) {
