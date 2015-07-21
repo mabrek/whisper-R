@@ -637,7 +637,7 @@ svd.prepare <- function(metrics) {
   m = metrics[2:nrow(metrics),] # first row is NA for counters
   m = exclude.columns(find.sparse(m), m)
   m = exclude.columns(find.constant(m), m)
-  scale(na.approx(m))
+  na.approx(m)
 }
 
 # then use multiplot.sorted(metrics, abs(udv$v[,component]))
