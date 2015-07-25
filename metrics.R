@@ -15,6 +15,7 @@ library(fastICA)
 library(tsne)
 library(shiny)
 library(dygraphs)
+library(stringr)
 
 lsd <- function(pos=1) {
   names(grep("^function$",
@@ -57,29 +58,46 @@ tree.merge.xts <- function(x, FUN = function(m) {m}) {
 }
 
 read.jmeter.csv <- function(file.name) {
-  as.xts(read.zoo(
-    file.name,
-    header=TRUE,
-    sep=",",
-    ## timeStamp,elapsed,label,responseCode,responseMessage,threadName,success,bytes,grpThreads,allThreads,Latency,IdleTime,Connect
-    colClasses=c("character", "numeric", "NULL", "NULL", "NULL", "NULL", "logical", "numeric", "integer", "integer", "numeric", "numeric", "numeric"),
-    FUN=function(t) {as.POSIXct(substr(t, 1, 10), origin="1970-01-01 00:00:00", format='%s')},
-    drop=FALSE))
+    m <- read.table(
+        file.name,
+        header=TRUE,
+        sep=",",
+        ## timeStamp,elapsed,label,responseCode,responseMessage,threadName,
+        ## success,bytes,grpThreads,allThreads,Latency,IdleTime,Connect
+        colClasses=c("character", "numeric", "factor", "NULL", "NULL", "NULL",
+            "logical", "numeric", "integer", "integer", "numeric", "numeric", 
+            "numeric"))
+    m[,"timeStamp"] <- as.POSIXct(substr(m[,"timeStamp"], 1, 10), origin="1970-01-01 00:00:00", format='%s')
+    m
 }
 
 aggregate.jmeter <- function(jmeter, interval.seconds) {
-  ticks <- align.time(index(jmeter), interval.seconds)
-  success <- as.xts(aggregate(jmeter[,"success"] == 1, ticks, sum)) / interval.seconds
-  error <- as.xts(aggregate(jmeter[,"success"] == 0, ticks, sum)) / interval.seconds
-  elapsed.raw <- jmeter[,"elapsed"] * 1000 # convert to microseconds
-  elapsed.min <- as.xts(aggregate(elapsed.raw, ticks, min, na.rm = TRUE))
-  elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
-  elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median, na.rm = TRUE))
-  elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
-  threads.median <- as.xts(aggregate(jmeter[,"grpThreads"], ticks, median, na.rm = TRUE))
-  aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median)
-  colnames(aggregated) <- c("jmeter.success.rate", "jmeter.error.rate", "jmeter.elapsed.min", "jmeter.elapsed.max", "jmeter.elapsed.median", "jmeter.elapsed.percentile99", "threads.median")
-  aggregated
+    columns <- setdiff(colnames(jmeter), "label")
+    tree.merge.xts(
+        mclapply(
+            c(levels(jmeter[,"label"]), ""),
+            function(l) {
+                if (l == "") {
+                    prefix <- "jmeter.total"
+                    idx <- 1:nrow(jmeter)
+                } else {
+                    prefix <- paste("jmeter", l, sep=".")
+                    idx <- jmeter[,"label"] == l
+                }
+                z <- read.zoo(jmeter[idx, columns])
+                ticks <- align.time(index(z), interval.seconds)
+                success <- as.xts(aggregate(z[,"success"] == 1, ticks, sum)) / interval.seconds
+                error <- as.xts(aggregate(z[,"success"] == 0, ticks, sum)) / interval.seconds
+                elapsed.raw <- z[,"elapsed"] * 1000 # convert to microseconds
+                elapsed.min <- as.xts(aggregate(elapsed.raw, ticks, min, na.rm = TRUE))
+                elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
+                elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median, na.rm = TRUE))
+                elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
+                threads.median <- as.xts(aggregate(z[,"grpThreads"], ticks, median, na.rm = TRUE))
+                aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median)
+                colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", "threads.median"))
+                aggregated
+            }))
 }
 
 read.fping <- function(file.name) {
