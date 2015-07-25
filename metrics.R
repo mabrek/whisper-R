@@ -174,7 +174,7 @@ filter.codahale_like <- function(metrics, counter.maxgap=1) {
 }
 
 filter.metrics <- function(metrics, change.threshold=0.01) {
-  cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait|interrupt)\\.value$",
+  cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait|interrupt|idle)\\.value$",
                       colnames(metrics),
                       value=TRUE)
   cpu.sums <- sapply(
