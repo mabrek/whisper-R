@@ -64,7 +64,7 @@ read.jmeter.csv <- function(file.name) {
         sep=",",
         ## timeStamp,elapsed,label,responseCode,responseMessage,threadName,
         ## success,bytes,grpThreads,allThreads,Latency,IdleTime,Connect
-        colClasses=c("character", "numeric", "factor", "NULL", "NULL", "NULL",
+        colClasses=c("character", "numeric", "factor", "factor", "NULL", "NULL",
             "logical", "numeric", "integer", "integer", "numeric", "numeric", 
             "numeric"))
     m[,"timeStamp"] <- as.POSIXct(substr(m[,"timeStamp"], 1, 10), origin="1970-01-01 00:00:00", format='%s')
