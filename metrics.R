@@ -181,12 +181,17 @@ filter.codahale_like <- function(metrics, counter.maxgap=1) {
   metrics <- metrics[, which(sapply(metrics[], function(v) {any(!is.na(v))})),
                      drop=FALSE]
   columns <- colnames(metrics)
-  # TODO jvm.daemon_thread_count is not a counter
-  counters <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$|\\.total\\.count$",
-                   columns, value=TRUE)
-  metrics[1, counters[which(is.na(metrics[1, counters]))]] <- 0
-  # TODO positive only diff, don't interpolate on negative jumps
-  metrics[, counters] <- diff(na.locf(na.approx(metrics[, counters, drop=FALSE], maxgap=counter.maxgap)), na.pad=TRUE)
+  counterNames <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$|\\.total\\.count$",
+                       columns, value=TRUE)
+  counterNames <- grep("jvm\\.daemon_thread_count", counterNames, invert=TRUE, value=TRUE)
+  counters <- metrics[, counterNames, drop=FALSE]
+  metrics <- exclude.columns(counters, metrics)
+  counters[1, which(is.na(counters[1,]))] <- 0
+  counters.diff <- diff(na.locf(na.approx(counters, maxgap=counter.maxgap)), na.pad=TRUE)
+  positive.jumps <- coredata(na.fill(lag.xts(diff(sign(counters.diff)) == 2, -1), FALSE))
+  counters.diff[counters.diff < 0] <- 0
+  counters.diff[positive.jumps] <- coredata(counters)[positive.jumps]
+  metrics <- merge.xts(metrics, counters.diff)
   colnames(metrics) <- sub('org.apache.cassandra.metrics.', '', colnames(metrics))
   metrics
 }
