@@ -96,17 +96,15 @@ aggregate.jmeter <- function(jmeter, interval.seconds) {
                 elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median, na.rm = TRUE))
                 elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
                 threads.median <- as.xts(aggregate(z[,"grpThreads"], ticks, median, na.rm = TRUE))
-                start.time = as.integer64(jmeter[idx,"timeStamp.raw"]) + jmeter[idx,"Connect"]
-                end.time = as.integer64(jmeter[idx,"timeStamp.raw"]) + jmeter[idx,"elapsed"]
-                concurrency.raw <-
-                    rbind(data.frame(timestamp=start.time, value=1), 
-                          data.frame(timestamp=end.time, value=-1)) %>% 
-                    arrange(timestamp, desc(value)) %>% 
-                    mutate(timestamp=as.POSIXct(timestamp / 1000,
-                                                origin="1970-01-01 00:00:00"), 
-                           concurrency=cumsum(value)) %>% 
-                    select(timestamp, concurrency) %>%
-                        read.zoo
+                start.time <- as.integer64(jmeter[idx,"timeStamp.raw"]) + jmeter[idx,"Connect"]
+                end.time <- as.integer64(jmeter[idx,"timeStamp.raw"]) + jmeter[idx,"elapsed"]
+                stamps.raw <- c(start.time, end.time)
+                stamps.order <- order(stamps.raw)
+                concurrency.raw <- zoo(
+                    cumsum(c(rep_len(1, length(start.time)),
+                             rep_len(-1, length(end.time)))[stamps.order]),
+                    as.POSIXct(stamps.raw[stamps.order] / 1000,
+                               origin="1970-01-01 00:00:00"))
                 concurrency <- as.xts(aggregate(concurrency.raw, align.time(index(concurrency.raw), interval.seconds), max, na.rm = TRUE))
                 aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median, concurrency)
                 colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", "threads.median", "concurrency"))
