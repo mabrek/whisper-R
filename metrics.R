@@ -105,9 +105,10 @@ aggregate.jmeter <- function(jmeter, interval.seconds) {
                              rep_len(-1, length(end.time)))[stamps.order]),
                     as.POSIXct(stamps.raw[stamps.order] / 1000,
                                origin="1970-01-01 00:00:00"))
-                concurrency <- as.xts(aggregate(concurrency.raw, align.time(index(concurrency.raw), interval.seconds), max, na.rm = TRUE))
-                aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median, concurrency)
-                colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", "threads.median", "concurrency"))
+                concurrency.min <- as.xts(aggregate(concurrency.raw, align.time(index(concurrency.raw), interval.seconds), min, na.rm = TRUE))
+                concurrency.max <- as.xts(aggregate(concurrency.raw, align.time(index(concurrency.raw), interval.seconds), max, na.rm = TRUE))
+                aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median, concurrency.min, concurrency.max)
+                colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", "threads.median", "concurrency.min", "concurrency.max"))
                 aggregated
             }))
 }
