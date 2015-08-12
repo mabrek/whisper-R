@@ -358,7 +358,7 @@ multiplot <- function(metrics, limit=15, vline=NA) {
   k <- min(n, limit)
  repeat {
     m <- data[, i:k, drop=FALSE]
-    labels <- colnames(m)
+    labels <- make.unique(colnames(m))
     df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
                      factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = labels),
                      as.vector(coredata(m)))
