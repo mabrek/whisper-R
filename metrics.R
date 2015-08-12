@@ -422,8 +422,7 @@ find.breakpoints <- function(metrics, segment = 0.25) {
       }
     }
   })
-  result <- rbind.fill(bpl)
-  result$name <- as.character(result$name)
+  result <- bind_rows(bpl)
   result[order(result$time),]
 }
 
