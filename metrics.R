@@ -18,25 +18,26 @@ library(stringr)
 library(bit64)
 library(dplyr)
 
-lsd <- function(pos=1) {
-  names(grep("^function$",
-             sapply(ls(pos=pos), function(x) {mode(get(x))}),
-             value=T,
-             invert=T))
+lsd <- function(pos = 1) {
+  names(grep("^function$", 
+             sapply(ls(pos = pos), function(x) {mode(get(x))}),
+             value = T, 
+             invert = T))
 }
 
 read.whisper.export <- function(file.name) {
-  as.xts(read.zoo(
-    file.name,
-    na.strings="None",
-    colClasses=c("integer", "numeric"),
-    col.names=c("time", basename(file.name)),
-    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00:00")},
-    drop=FALSE))
+  as.xts(
+    read.zoo(
+      file.name,
+      na.strings = "None",
+      colClasses = c("integer", "numeric"), 
+      col.names = c("time", basename(file.name)),
+      FUN = function(t) {as.POSIXct(t, origin = "1970-01-01 00:00:00")}, 
+      drop = FALSE))
 }
 
-load.metrics <- function(path=".") {
-  merge.files(list.files(path, full.names=TRUE))
+load.metrics <- function(path = ".") {
+  merge.files(list.files(path, full.names = TRUE))
 }
 
 merge.files <- function(files) {
@@ -53,111 +54,138 @@ tree.merge.xts <- function(x, FUN = function(m) {m}) {
     }
     r
   } else if (k > 1) {
-    merge.xts(tree.merge.xts(x[1 : (k %/% 2)], FUN = FUN),
-              tree.merge.xts(x[(k %/% 2 + 1) : k], FUN = FUN))
+    merge.xts(tree.merge.xts(x[1:(k %/% 2)], FUN = FUN), 
+              tree.merge.xts(x[(k %/% 2 + 1):k], FUN = FUN))
   }
 }
 
 read.jmeter.csv <- function(file.name) {
-    m <- read.table(
-        file.name,
-        header=TRUE,
-        sep=",",
-        ## timeStamp,elapsed,label,responseCode,responseMessage,threadName,
-        ## success,bytes,grpThreads,allThreads,Latency,IdleTime,Connect
-        colClasses=c("character", "numeric", "factor", "factor", "NULL", "NULL",
-            "logical", "numeric", "integer", "integer", "numeric", "numeric", 
-            "numeric"))
-    m[,"timeStamp.raw"] <- m[,"timeStamp"]
-    m[,"timeStamp"] <- as.POSIXct(substr(m[,"timeStamp"], 1, 10), origin="1970-01-01 00:00:00", format='%s')
-    m
+  m <- read.table(
+    file.name,
+    header = TRUE,
+    sep = ",",
+    # timeStamp,elapsed,label,responseCode,responseMessage,threadName,
+    # success,bytes,grpThreads,allThreads,Latency,IdleTime,Connect
+    colClasses = c("character", "numeric", "factor", "factor", "NULL", "NULL",
+      "logical", "numeric", "integer", "integer", "numeric", "numeric",
+      "numeric"))
+  m[, "timeStamp.raw"] <- m[, "timeStamp"]
+  m[, "timeStamp"] <- as.POSIXct(substr(m[, "timeStamp"], 1, 10),
+                                 origin = "1970-01-01 00:00:00",
+                                 format = "%s")
+  m
 }
 
 aggregate.jmeter <- function(jmeter, interval.seconds) {
-    columns <- setdiff(colnames(jmeter), c("label", "responseCode", "timeStamp.raw"))
-    tree.merge.xts(
-        mclapply(
-            c(levels(jmeter[,"label"]), ""),
-            function(l) {
-                if (l == "") {
-                    prefix <- "jmeter.total"
-                    idx <- 1:nrow(jmeter)
-                } else {
-                    prefix <- paste("jmeter", l, sep=".")
-                    idx <- jmeter[,"label"] == l
-                }
-                z <- read.zoo(jmeter[idx, columns])
-                ticks <- align.time(index(z), interval.seconds)
-                success <- as.xts(aggregate(z[,"success"] == 1, ticks, sum)) / interval.seconds
-                error <- as.xts(aggregate(z[,"success"] == 0, ticks, sum)) / interval.seconds
-                elapsed.raw <- z[,"elapsed"] * 1000 # convert to microseconds
-                elapsed.min <- as.xts(aggregate(elapsed.raw, ticks, min, na.rm = TRUE))
-                elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
-                elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median, na.rm = TRUE))
-                elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
-                threads.median <- as.xts(aggregate(z[,"grpThreads"], ticks, median, na.rm = TRUE))
-                start.time <- as.integer64(jmeter[idx,"timeStamp.raw"]) + jmeter[idx,"Connect"]
-                end.time <- as.integer64(jmeter[idx,"timeStamp.raw"]) + jmeter[idx,"elapsed"]
-                stamps.raw <- c(start.time, end.time)
-                stamps.order <- order(stamps.raw)
-                concurrency.raw <- zoo(
-                    cumsum(c(rep_len(1, length(start.time)),
-                             rep_len(-1, length(end.time)))[stamps.order]),
-                    as.POSIXct(stamps.raw[stamps.order] / 1000,
-                               origin="1970-01-01 00:00:00"))
-                concurrency.min <- as.xts(aggregate(concurrency.raw, align.time(index(concurrency.raw), interval.seconds), min, na.rm = TRUE))
-                concurrency.max <- as.xts(aggregate(concurrency.raw, align.time(index(concurrency.raw), interval.seconds), max, na.rm = TRUE))
-                aggregated <- merge.xts(success, error, elapsed.min, elapsed.max, elapsed.median, elapsed.percentile99, threads.median, concurrency.min, concurrency.max)
-                colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", "threads.median", "concurrency.min", "concurrency.max"))
-                aggregated
-            }))
+  columns <- setdiff(colnames(jmeter),
+                     c("label", "responseCode", "timeStamp.raw"))
+  tree.merge.xts(
+    mclapply(
+      c(levels(jmeter[, "label"]), ""),
+      function(l) {
+        if (l == "") {
+          prefix <- "jmeter.total"
+          idx <- 1:nrow(jmeter)
+        } else {
+          prefix <- paste("jmeter", l, sep = ".")
+          idx <- jmeter[, "label"] == l
+        }
+        z <- read.zoo(jmeter[idx, columns])
+        ticks <- align.time(index(z), interval.seconds)
+        success <- as.xts(aggregate(z[, "success"] == 1, ticks, sum)) / interval.seconds
+        error <- as.xts(aggregate(z[, "success"] == 0, ticks, sum)) / interval.seconds
+        elapsed.raw <- z[, "elapsed"] * 1000  # convert to microseconds
+        elapsed.min <- as.xts(aggregate(elapsed.raw, ticks, min, na.rm = TRUE))
+        elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
+        elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median,
+                                           na.rm = TRUE))
+        elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile,
+                                                 probs = c(0.99), na.rm = TRUE))
+        threads.median <- as.xts(aggregate(z[, "grpThreads"], ticks, median,
+                                           na.rm = TRUE))
+        start.time <- as.integer64(jmeter[idx, "timeStamp.raw"]) +
+          jmeter[idx, "Connect"]
+        end.time <- as.integer64(jmeter[idx, "timeStamp.raw"]) +
+          jmeter[idx, "elapsed"]
+        stamps.raw <- c(start.time, end.time)
+        stamps.order <- order(stamps.raw)
+        concurrency.raw <- zoo(
+          cumsum(c(rep_len(1, length(start.time)),
+                   rep_len(-1, length(end.time)))[stamps.order]),
+          as.POSIXct(stamps.raw[stamps.order] / 1000,
+                     origin = "1970-01-01 00:00:00"))
+        concurrency.min <- as.xts(aggregate(concurrency.raw,
+                                            align.time(index(concurrency.raw),
+                                                       interval.seconds),
+                                            min, na.rm = TRUE))
+        concurrency.max <- as.xts(aggregate(concurrency.raw,
+                                            align.time(index(concurrency.raw), 
+                                                       interval.seconds),
+                                            max, na.rm = TRUE))
+        aggregated <- merge.xts(success, error, elapsed.min, elapsed.max,
+                                elapsed.median, elapsed.percentile99,
+                                threads.median, concurrency.min,
+                                concurrency.max)
+    colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", 
+      "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", 
+      "threads.median", "concurrency.min", "concurrency.max"))
+    aggregated
+  }))
 }
 
 read.fping <- function(file.name) {
-  as.xts(read.zoo(
-    file.name,
-    col.names=c('time', 'seq', 'rtt'),
-    FUN=function(t) {as.POSIXct(t, origin="1970-01-01 00:00:00")}))
+  as.xts(
+    read.zoo(
+      file.name,
+      col.names = c("time", "seq", "rtt"),
+      FUN = function(t) {as.POSIXct(t, origin = "1970-01-01 00:00:00")}))
 }
 
 aggregate.fping <- function(fping, interval.seconds) {
   ticks <- align.time(index(fping), interval.seconds)
-  loss.raw <- diff(fping[, "seq"], na.pad=T) - 1
-  loss <- as.xts(aggregate(loss.raw, ticks, sum, na.rm = TRUE)) / interval.seconds
-  rtt.raw <- fping[, "rtt"] * 1000 # convert to microseconds
+  loss.raw <- diff(fping[, "seq"], na.pad = T) - 1
+  loss <- as.xts(aggregate(loss.raw, ticks, sum, na.rm = TRUE)) /
+    interval.seconds
+  rtt.raw <- fping[, "rtt"] * 1000  # convert to microseconds
   rtt.min <- as.xts(aggregate(rtt.raw, ticks, min, na.rm = TRUE))
   rtt.max <- as.xts(aggregate(rtt.raw, ticks, max, na.rm = TRUE))
   rtt.median <- as.xts(aggregate(rtt.raw, ticks, median, na.rm = TRUE))
-  rtt.percentile99 <- as.xts(aggregate(rtt.raw, ticks, quantile, probs = c(0.99), na.rm = TRUE))
+  rtt.percentile99 <- as.xts(aggregate(rtt.raw, ticks, quantile,
+                                       probs = c(0.99), na.rm = TRUE))
   aggregated <- merge.xts(loss, rtt.min, rtt.max, rtt.median, rtt.percentile99)
-  colnames(aggregated) <- c("loss", "fping.rtt.min", "fping.rtt.max", "fping.rtt.median", "fping.rtt.percentile99")
+  colnames(aggregated) <- c("loss", "fping.rtt.min", "fping.rtt.max",
+                            "fping.rtt.median", "fping.rtt.percentile99")
   aggregated
 }
 
-heatmap <- function(metric, bins=500) {
-  ggplot(fortify(metric, melt=T), aes(Index, Value)) + stat_bin2d(bins=bins) + scale_fill_gradientn(colours=rainbow(7)) + facet_grid(Series ~ .)
+heatmap <- function(metric, bins = 500) {
+  ggplot(fortify(metric, melt = T), aes(Index, Value)) +
+    stat_bin2d(bins = bins) + 
+    scale_fill_gradientn(colours = rainbow(7)) + 
+    facet_grid(Series ~ .)
 }
 
 set.cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-get.correlation.matrix <- function(metrics, complete=0.1, method="spearman", fill=0.1) {
+get.correlation.matrix <- function(metrics, complete = 0.1,
+                                   method = "spearman", fill = 0.1) {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
   l <- nrow(metrics)
   d <- coredata(metrics)
-  rl <- mclapply(combn(n, 2, simplify=FALSE), function(ij) {
+  rl <- mclapply(combn(n, 2, simplify = FALSE), function(ij) {
     i <- ij[1]
     j <- ij[2]
-    x2 <- d[,i]
-    y2 <- d[,j]
+    x2 <- d[, i]
+    y2 <- d[, j]
     ok <- complete.cases(x2, y2)
     mc <- max(counts[i], counts[j])
     if (mc != 0 & sum(ok)/mc >= complete & sum(ok)/l >= fill) {
       x2 <- x2[ok]
       y2 <- y2[ok]
-      cr <- cor(x2, y2, method=method)
+      cr <- cor(x2, y2, method = method)
       if (is.na(cr)) {
         cr <- 0
       }
@@ -166,7 +194,7 @@ get.correlation.matrix <- function(metrics, complete=0.1, method="spearman", fil
     }
     list(i, j, cr)
   })
-  r <- matrix(0, nrow=n, ncol=n)
+  r <- matrix(0, nrow = n, ncol = n)
   for (ijc in rl) r[ijc[[1]], ijc[[2]]] <- ijc[[3]]
   r <- r + t(r) + diag(n)
   rownames(r) <- colnames(metrics)
@@ -174,8 +202,9 @@ get.correlation.matrix <- function(metrics, complete=0.1, method="spearman", fil
   r
 }
 
-get.correlation.distance <- function(metrics, complete=0.1, method="spearman", fill=0.1) {
-  d <- as.dist(1-abs(get.correlation.matrix(metrics, complete, method, fill)))
+get.correlation.distance <- function(metrics, complete = 0.1,
+                                     method = "spearman", fill = 0.1) {
+  d <- as.dist(1 - abs(get.correlation.matrix(metrics, complete, method, fill)))
   d[d > 1] <- 1
   d[d < 0] <- 0
   d
@@ -183,89 +212,93 @@ get.correlation.distance <- function(metrics, complete=0.1, method="spearman", f
 
 filter.statsd <- function(metrics) {
   filter.colnames("sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts",
-                  metrics,
+                  metrics, 
                   invert = TRUE)
 }
 
-filter.codahale_like <- function(metrics, counter.maxgap=1) {
-  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$|\\.meanRate$|\\.publish\\.value$|MemtableColumnsCount\\.value$",
-                             metrics,
-                             invert = TRUE)
-  metrics <- metrics[, which(sapply(metrics[], function(v) {any(!is.na(v))})),
-                     drop=FALSE]
+filter.codahale_like <- function(metrics, counter.maxgap = 1) {
+  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$|\\.meanRate$|\\.publish\\.value$|MemtableColumnsCount\\.value$", 
+    metrics, invert = TRUE)
+  metrics <- metrics[,
+                     which(sapply(metrics[], function(v) {any(!is.na(v))})),
+                     drop = FALSE]
   columns <- colnames(metrics)
-  counterNames <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$|\\.total\\.count$",
-                       columns, value=TRUE)
-  counterNames <- grep("jvm\\.daemon_thread_count", counterNames, invert=TRUE, value=TRUE)
-  counters <- metrics[, counterNames, drop=FALSE]
+  counterNames <- grep("\\.number_of_gcs$|\\.words_reclaimed$|\\.io\\.input$|\\.io\\.output$|\\.total_reductions$|\\.count$|\\.vm\\.context_switches$|\\.runtime\\.total_run_time$|\\.jvm\\.gc.*(time|runs)$|\\.(CompletedTasks|TotalBlockedTasks|SpeculativeRetries|MemtableSwitchCount|BloomFilterFalsePositives|confirm|publish_in|publish_out|ack|deliver_get|deliver)\\.value$|_count$|\\.total\\.count$", 
+                       columns, value = TRUE)
+  counterNames <- grep("jvm\\.daemon_thread_count", counterNames,
+                       invert = TRUE, value = TRUE)
+  counters <- metrics[, counterNames, drop = FALSE]
   metrics <- exclude.columns(counters, metrics)
-  counters[1, which(is.na(counters[1,]))] <- 0
-  counters.diff <- diff(na.locf(na.approx(counters, maxgap=counter.maxgap)), na.pad=TRUE)
-  positive.jumps <- coredata(na.fill(lag.xts(diff(sign(counters.diff)) == 2, -1), FALSE))
+  counters[1, which(is.na(counters[1, ]))] <- 0
+  counters.diff <- diff(na.locf(na.approx(counters, maxgap = counter.maxgap)), 
+                        na.pad = TRUE)
+  positive.jumps <- coredata(
+    na.fill(lag.xts(diff(sign(counters.diff)) == 2, -1), FALSE))
   counters.diff[counters.diff < 0] <- 0
   counters.diff[positive.jumps] <- coredata(counters)[positive.jumps]
   metrics <- merge.xts(metrics, counters.diff)
-  colnames(metrics) <- sub('org.apache.cassandra.metrics.', '', colnames(metrics))
+  colnames(metrics) <- sub("org.apache.cassandra.metrics.", "",
+                           colnames(metrics))
   metrics
 }
 
-filter.metrics <- function(metrics, change.threshold=0.01) {
-  cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait|interrupt|idle)\\.value$",
-                      colnames(metrics),
-                      value=TRUE)
+filter.metrics <- function(metrics, change.threshold = 0.01) {
+  cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait|interrupt|idle)\\.value$", 
+    colnames(metrics), value = TRUE)
   cpu.sums <- sapply(
     tapply(cpu.columns,
-           sub("^(.*)\\.cpu\\.[[:digit:]]+\\.(.*)$", "\\1.\\2", cpu.columns),
-           c),
+           sub("^(.*)\\.cpu\\.[[:digit:]]+\\.(.*)$", "\\1.\\2", cpu.columns), c),
     function(cl) {
-      rowSums(metrics[,cl,drop=FALSE], na.rm=TRUE)
+      rowSums(metrics[, cl, drop = FALSE], na.rm = TRUE)
     })
   if (length(cpu.sums) > 0) {
     # TODO make it idempotent
     metrics <- cbind(metrics, cpu.sums)
   }
-  metrics <- metrics[,
-                     !grepl("df_complex\\.used\\.value$|\\.disk\\.sd[a-z][0-9]\\.", colnames(metrics)),
-                     drop=FALSE]
+  metrics <-
+    metrics[, !grepl("df_complex\\.used\\.value$|\\.disk\\.sd[a-z][0-9]\\.", 
+                     colnames(metrics)),
+            drop = FALSE]
   # TODO split into 2 functions here
   columns <- colnames(metrics)
-  medians <- apply(metrics, 2, median, na.rm=TRUE)
-  ranges <- apply(metrics, 2, range, na.rm=TRUE)
+  medians <- apply(metrics, 2, median, na.rm = TRUE)
+  ranges <- apply(metrics, 2, range, na.rm = TRUE)
   metrics[,
-          (!grepl("\\.cpu\\.[[:alpha:]]+\\.value$", columns) | ranges[2,] > 5)
-          & ranges[1,] != ranges[2,]
-          & is.finite(ranges[1,])
-          & is.finite(ranges[2,])
-          & (!grepl("load\\.(longterm|midterm|shortterm)$", columns) | ranges[2,] > 0.5)
-          & abs((ranges[2,] - ranges[1,])/medians) > change.threshold # TODO wrong for counters before diff
-          & (!grepl("if_octets", columns) | ranges[2,] > 1000)
-          & (!grepl("if_packets", columns) | ranges[2,] > 10),
-          drop=FALSE
-          ]
+          (!grepl("\\.cpu\\.[[:alpha:]]+\\.value$", columns) | ranges[2, ] > 5) &
+            ranges[1, ] != ranges[2, ] &
+            is.finite(ranges[1, ]) &
+            is.finite(ranges[2,]) &
+            (!grepl("load\\.(longterm|midterm|shortterm)$", columns) |
+               ranges[2,] > 0.5) &
+             abs((ranges[2, ] - ranges[1, ])/medians) > change.threshold  # TODO wrong for counters before diff
+            & (!grepl("if_octets", columns) | ranges[2, ] > 1000) &
+            (!grepl("if_packets", columns) | ranges[2, ] > 10), 
+          drop = FALSE]
 }
 
 scale.range <- function(metrics) {
-  ranges <- apply(metrics, 2, range, na.rm=TRUE)
-  mins = matrix(ranges[1,], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
-  maxs = matrix(ranges[2,], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
-  (metrics - mins) / (maxs - mins)
+  ranges <- apply(metrics, 2, range, na.rm = TRUE)
+  mins <- matrix(ranges[1, ], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
+  maxs <- matrix(ranges[2, ], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
+  (metrics - mins)/(maxs - mins)
 }
 
 get.relative.time <- function(metrics) {
   as.numeric(index(metrics) - min(index(metrics)))
 }
 
-get.abs.correlation <- function(x, metrics, subset=1:nrow(metrics), complete=0.1, method="spearman") {
+get.abs.correlation <- function(x, metrics, subset = 1:nrow(metrics),
+                                complete = 0.1, method = "spearman") {
   x <- coredata(x[subset])
   nx <- sum(!is.na(x))
-  m <- coredata(metrics[subset,])
+  m <- coredata(metrics[subset, ])
   simplify2array(mclapply(1:ncol(m), function(k) {
-    y <- m[,k]
+    y <- m[, k]
     ok <- complete.cases(x, y)
     if ((sum(ok) / max(nx, sum(!is.na(y)))) > complete) {
       x2 <- x[ok]
       y2 <- y[ok]
-      cr <- abs(cor(x2, y2, method=method))
+      cr <- abs(cor(x2, y2, method = method))
       if (is.na(cr)) {
         0
       } else {
@@ -282,9 +315,9 @@ get.diff.correlation <- function(x, metrics, ...) {
   get.abs.correlation(diff(x), diff(metrics), ...)
 }
 
-get.periodogram.distance <- function(x, metrics, subset=1:nrow(metrics)) {
+get.periodogram.distance <- function(x, metrics, subset = 1:nrow(metrics)) {
   simplify2array(mclapply(metrics, function(m) {
-    diss.INT.PER(as.vector(x[subset]), as.vector(m[subset]), normalize=T)
+    diss.INT.PER(as.vector(x[subset]), as.vector(m[subset]), normalize = T)
   }))
 }
 
@@ -294,78 +327,80 @@ exclude.columns <- function(what, from) {
        drop=FALSE]
 }
 
-find.constant <- function(metrics, subset=1:nrow(metrics)) {
-  ranges <- sapply(metrics[subset,], function(v) {
-    range(v, na.rm=TRUE)
-  })    
-  metrics[,
-          ranges[1,] == ranges[2,],
-          drop=FALSE]
+find.constant <- function(metrics, subset = 1:nrow(metrics)) {
+  ranges <- sapply(metrics[subset, ], function(v) {
+    range(v, na.rm = TRUE)
+  })
+  metrics[, ranges[1, ] == ranges[2, ], drop = FALSE]
 }
 
 filter.any.na <- function(metrics) {
   metrics[,
           which(sapply(metrics, function(v) {all(!is.na(v))})),
-          drop=FALSE]
+          drop = FALSE]
 }
 
 find.any.na <- function(metrics) {
-  metrics[, which(sapply(metrics, function(v) {any(is.na(v))})), drop=FALSE]
+  metrics[,
+          which(sapply(metrics, function(v) {any(is.na(v))})),
+          drop = FALSE]
 }
 
-find.na <- function(metrics, subset=1:nrow(metrics)) {
+find.na <- function(metrics, subset = 1:nrow(metrics)) {
   metrics[,
-          which(sapply(metrics[subset,], function(v) {all(is.na(v))})),
-          drop=FALSE]
+          which(sapply(metrics[subset, ], function(v) {all(is.na(v))})),
+          drop = FALSE]
 }
 
 find.changed.sd <- function(metrics, a, b) {
-  sd.a <- sapply(metrics[a, ], sd, na.rm=TRUE)
-  sd.b <- sapply(metrics[b, ], sd, na.rm=TRUE)
+  sd.a <- sapply(metrics[a, ], sd, na.rm = TRUE)
+  sd.b <- sapply(metrics[b, ], sd, na.rm = TRUE)
   metrics[,
-          order(sd.b/sd.a, decreasing=TRUE, na.last=TRUE),
-          drop=FALSE]
+          order(sd.b / sd.a, decreasing = TRUE, na.last = TRUE),
+          drop = FALSE]
 }
 
 find.changed.mean <- function(metrics, a, b) {
-  mean.a <- sapply(metrics[a, ], mean, na.rm=TRUE)
-  mean.b <- sapply(metrics[b, ], mean, na.rm=TRUE)
+  mean.a <- sapply(metrics[a, ], mean, na.rm = TRUE)
+  mean.b <- sapply(metrics[b, ], mean, na.rm = TRUE)
   metrics[,
-          order(abs((mean.b - mean.a)/mean.a),
-                     decreasing=TRUE,
-                     na.last=TRUE),
-          drop=FALSE]
+          order(abs((mean.b - mean.a) / mean.a), decreasing = TRUE,
+                na.last = TRUE), 
+          drop = FALSE]
 }
 
 filter.colnames <- function(pattern, metrics, ...) {
   metrics[,
           grep(pattern, colnames(metrics), ...),
-          drop=FALSE]
+          drop = FALSE]
 }
 
 ## TODO bring back dotted version
-multiplot <- function(metrics, limit=15, vline=NA) {
- data <- metrics
- if (length(colnames(data)) == 0) {
-   colnames(data) <- 1:ncol(data)
- }
- data <- data[,
-              which(sapply(data, function(v) {any(!is.na(v))})),
-              drop=FALSE]
+multiplot <- function(metrics, limit = 15, vline = NA) {
+  data <- metrics
+  if (length(colnames(data)) == 0) {
+    colnames(data) <- 1:ncol(data)
+  }
+  data <- data[,
+               which(sapply(data, function(v) {any(!is.na(v))})),
+               drop = FALSE]
   r <- nrow(data)
   n <- ncol(data)
   i <- 1
   k <- min(n, limit)
- repeat {
-    m <- data[, i:k, drop=FALSE]
+  repeat {
+    m <- data[, i:k, drop = FALSE]
     labels <- make.unique(colnames(m))
     df <- data.frame(index(m)[rep.int(1:r, ncol(m))],
-                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m), labels = labels),
+                     factor(rep(1:ncol(m), each = r), levels = 1:ncol(m),
+                            labels = labels),
                      as.vector(coredata(m)))
     names(df) <- c("Index", "Series", "Value")
-    p <- ggplot(data = df) + geom_path(aes(x = Index, y = Value), na.rm=TRUE) + xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + theme(strip.text.y = element_text(angle=0))
+    p <- ggplot(data = df) + geom_path(aes(x = Index, y = Value), na.rm = TRUE) + 
+      xlab(NULL) + ylab(NULL) + facet_grid(Series ~ ., scales = "free_y") + 
+      theme(strip.text.y = element_text(angle = 0))
     if (!is.na(vline)) {
-      p <- p + geom_vline(xintercept=as.numeric(index(metrics)[vline]), colour="red")
+      p <- p + geom_vline(xintercept = as.numeric(index(metrics)[vline]), colour = "red")
     }
     print(p)
     if (k >= n) {
@@ -383,70 +418,69 @@ multiplot <- function(metrics, limit=15, vline=NA) {
 }
 
 view <- function(pattern, metrics, limit = 15) {
-  multiplot(filter.colnames(pattern, metrics, ignore.case = TRUE),
-                    limit = limit)
+  multiplot(filter.colnames(pattern, metrics, ignore.case = TRUE), limit = limit)
 }
 
 sameplot <- function(metrics, ...) {
-  autoplot(metrics, facet=NULL, ...)
+  autoplot(metrics, facet = NULL, ...)
 }
 
 # TODO pass function to compare
-multiplot.sorted <- function(metrics, comparison, decreasing=TRUE, ...) {
+multiplot.sorted <- function(metrics, comparison, decreasing = TRUE, ...) {
   sort.order <- order(comparison, decreasing = decreasing)
   data <- metrics[,
                   sort.order,
-                  drop=FALSE]
+                  drop = FALSE]
   colnames(data) <- paste("[", sort.order, "]",
                           comparison[sort.order],
                           names(metrics)[sort.order])
   multiplot(data, ...)
 }
 
-robust.histogram <- function(x, probs=c(0.01, 0.99), ...) {
-  qplot(x = x, xlim = quantile(x, probs, na.rm=TRUE), ...)
+robust.histogram <- function(x, probs = c(0.01, 0.99), ...) {
+  qplot(x = x, xlim = quantile(x, probs, na.rm = TRUE), ...)
 }
 
 find.breakpoints <- function(metrics, segment = 0.25) {
   bpl <- mclapply(metrics, function(m) {
     m <- na.omit(m)
-    if ((segment < 1 & floor(segment * length(m)) <= 2)
-        | segment > 1) {
+    if ((segment < 1 & floor(segment * length(m)) <= 2) | segment > 1) {
       data.frame()
     } else {
-      bp <- breakpoints(coredata(m) ~ get.relative.time(m), h=segment)$breakpoints
+      bp <- breakpoints(coredata(m) ~ get.relative.time(m), h = segment)$breakpoints
       if (is.na(bp)) {
         data.frame()
       } else {
-        data.frame(name=names(m)[1], time=index(m)[bp])
+        data.frame(name = names(m)[1], time = index(m)[bp])
       }
     }
   })
   result <- bind_rows(bpl)
-  result[order(result$time),]
+  result[order(result$time), ]
 }
 
-get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p.value = 0.05, fill=50) {
+get.distribution.change <- function(metric, window.seconds = 300,
+                                    by.seconds = 60, p.value = 0.05, fill = 50) {
   index.range <- range(index(metric))
-  half.window = window.seconds %/% 2
-  total.seconds <- as.integer(difftime(index.range[2], index.range[1], units="s"))
+  half.window <- window.seconds %/% 2
+  total.seconds <- as.integer(difftime(index.range[2], index.range[1], units = "s"))
   indices <- unique(align.time(index(metric), by.seconds))
   indices <- indices[indices > index.range[1] + half.window & indices < index.range[2] - half.window]
   values <- simplify2array(mclapply(indices, function(i) {
-    x <- na.omit(as.vector(coredata(window(metric, start=i-half.window, end=i))))
-    ## TODO workaround for window() that includes both start and end,
-    ## expects metric to have 1s or larger intervals
-    y <- na.omit(as.vector(coredata(window(metric, start=i+1, end=i+half.window))))
+    x <- na.omit(as.vector(coredata(window(metric, start = i - half.window, end = i))))
+    # TODO workaround for window() that includes both start and end,
+    # expects metric to have 1s or larger intervals
+    y <- na.omit(as.vector(coredata(window(metric, start = i + 1, end = i + half.window))))
     lx <- length(x)
     ly <- length(y)
-    if (length(x) >= 1 & length(y) >= 1
-        & length(unique(x)) >= fill
-        & length(unique(y)) >= fill) {
+    if (length(x) >= 1 & length(y) >= 1 &
+        length(unique(x)) >= fill &
+        length(unique(y)) >= fill) {
       ## TODO Cramer-von-Mises instead of Kolmogorov-Smirnov
-      t <- ks.test(x, y, exact=FALSE)
-      if (t$p.value < p.value)
+      t <- ks.test(x, y, exact = FALSE)
+      if (t$p.value < p.value) {
         t$statistic
-      else {
+      } else {
         NA
       }
     } else {
@@ -458,68 +492,57 @@ get.distribution.change <- function(metric, window.seconds=300, by.seconds=60, p
   res
 }
 
-## TODO broken
-find.changed.distribution <- function(metrics, half.width=100, by=10, p.value = 0.05, u.part=0.1, fill=0.1) {
-  change <- simplify2array(mclapply(metrics, function(m) {
-    max(get.distribution.change(m, half.width=half.width, by=by, p.value=p.value, u.part=u.part, fill=fill), na.rm=TRUE)
-  }))
-  indices <- order(change, decreasing=TRUE, na.last=TRUE)
-  metrics[,
-          indices[!is.na(change[indices]) & !is.infinite(change[indices])],
-          drop=FALSE]
+
+find.nonlinear <- function(metrics, subset = 1:nrow(metrics)) {
+  diffs <- simplify2array(mclapply(as.ts(metrics[subset, ]), ndiffs))
+  indices <- order(diffs, decreasing = TRUE)
+  metrics[, indices[diffs[indices] > 1], drop = FALSE]
 }
 
-find.nonlinear <- function(metrics, subset=1:nrow(metrics)) {
-  diffs <- simplify2array(mclapply(as.ts(metrics[subset,]), ndiffs))
-  indices <- order(diffs, decreasing=TRUE)
-  metrics[,
-          indices[diffs[indices] > 1],
-          drop=FALSE]
-}
-
-find.autocorrelated <- function(metrics, subset=1:nrow(metrics), lag=100, p.value=0.05) {
-  ac <- simplify2array(mclapply(metrics[subset,], function(m) {
-    bt <- Box.test(m, lag=lag, type="Ljung-Box")
+find.autocorrelated <- function(metrics, subset = 1:nrow(metrics), lag = 100, p.value = 0.05) {
+  ac <- simplify2array(mclapply(metrics[subset, ], function(m) {
+    bt <- Box.test(m, lag = lag, type = "Ljung-Box")
     c(bt$statistic, bt$p.value)
   }))
-  indices <- na.exclude(order(ac[1,], decreasing=TRUE))
-  metrics[,
-          na.exclude(indices[ac[2,indices] < p.value]),
-          drop=FALSE]
+  indices <- na.exclude(order(ac[1, ], decreasing = TRUE))
+  metrics[, na.exclude(indices[ac[2, indices] < p.value]), drop = FALSE]
 }
 
-get.autocorrelation <- function(metrics, subset=1:nrow(metrics), lag) {
-  simplify2array(mclapply(metrics[subset,], function(m) {
-    cor(m, lag(m, lag), use="na.or.complete")
+get.autocorrelation <- function(metrics, subset = 1:nrow(metrics), lag) {
+  simplify2array(mclapply(metrics[subset, ], function(m) {
+    cor(m, lag(m, lag), use = "na.or.complete")
   }))
 }
 
-plot.medoids <- function(metrics, pamobject, limit=50) {
-  sorted <- order(pamobject$silinfo$clus.avg.widths * pamobject$clusinfo[, "size"], decreasing=TRUE)
+plot.medoids <- function(metrics, pamobject, limit = 50) {
+  sorted <- order(pamobject$silinfo$clus.avg.widths * pamobject$clusinfo[, "size"], 
+    decreasing = TRUE)
   sorted <- sorted[which(pamobject$clusinfo[sorted, "size"] > 1)]
   data <- metrics[,
                   pamobject$medoids[sorted],
-                  drop=FALSE]
+                  drop = FALSE]
   colnames(data) <- paste("[", sorted, "]",
                           pamobject$medoids[sorted],
                           pamobject$clusinfo[sorted, "size"])
   multiplot(data, limit)
 }
 
-plot.cluster <- function(metrics, pamobject, id, limit=50) {
+plot.cluster <- function(metrics, pamobject, id, limit = 50) {
   multiplot(
     metrics[,
             names(
               sort(
                 pamobject$silinfo$widths[names(which(pamobject$clustering == id)),
                                          "sil_width"],
-                       decreasing=TRUE)),
-            drop=FALSE],
+                decreasing = TRUE)),
+            drop = FALSE],
     limit)
 }
 
 par.pam <- function(d, krange) {
-  mclapply(krange, function(k) {pam(d, k, diss=TRUE)})
+  mclapply(krange, function(k) {
+    pam(d, k, diss = TRUE)
+  })
 }
 
 mc.period.apply <- function(metrics, INDEX, FUN, ...) {
@@ -536,8 +559,12 @@ mc.lm <- function(metrics) {
     list(residuals = residuals(fit), r.squared = summary.lm(fit)$r.squared)
   })
   m.r <- metrics
-  coredata(m.r) <- sapply(lms, function(l) {l$residuals})
-  list(residuals = m.r, r.squared = sapply(lms, function(l) {l$r.squared}))
+  coredata(m.r) <- sapply(lms, function(l) {
+    l$residuals
+  })
+  list(residuals = m.r, r.squared = sapply(lms, function(l) {
+    l$r.squared
+  }))
 }
 
 mc.rq <- function(metrics) {
@@ -552,11 +579,11 @@ mc.rq <- function(metrics) {
 
 decompose.median <- function(metrics, period) {
   half.window <- period %/% 2
-  median.window <- half.window * 2 +1
+  median.window <- half.window * 2 + 1
   l <- nrow(metrics)
   ld <- mclapply(metrics, function(m) {
     # TODO switch back to rollaply(median) to allow NAs in data
-    trend <- runmed(coredata(m), median.window, endrule="keep")
+    trend <- runmed(coredata(m), median.window, endrule = "keep")
     trend[1:half.window] <- NA
     trend[(l - half.window):l] <- NA
     season <- coredata(m) - trend
@@ -564,30 +591,29 @@ decompose.median <- function(metrics, period) {
     l <- length(m)
     index <- seq.int(1, l, by = period) - 1
     for (i in 1:period) figure[i] <- median(season[index + i], na.rm = TRUE)
-    list(seasonal=rep(figure, l %/% period + 1)[seq_len(l)],
-         trend=trend)
+    list(seasonal = rep(figure, l%/%period + 1)[seq_len(l)],
+         trend = trend)
   })
   names(ld) <- NULL
-  n = ncol(metrics)
-  idx = index(metrics)
-  nm = names(metrics)
-  uld <- unlist(ld, recursive=FALSE)
+  n <- ncol(metrics)
+  idx <- index(metrics)
+  nm <- names(metrics)
+  uld <- unlist(ld, recursive = FALSE)
   t.m <- matrix(unlist(uld[names(uld) == "trend"], use.name = FALSE), ncol = n)
   trend <- xts(t.m, order.by = idx)
   names(trend) <- nm
-  s.m <- matrix(unlist(uld[names(uld) == "seasonal"], use.names = FALSE),
-                       ncol = n)
+  s.m <- matrix(unlist(uld[names(uld) == "seasonal"], use.names = FALSE), ncol = n)
   seasonal <- xts(s.m, order.by = idx)
   names(seasonal) <- nm
-  list(trend=trend, seasonal=seasonal)
+  list(trend = trend, seasonal = seasonal)
 }
 
 non.seasonal.proportion <- function(metrics, decomposed.metrics) {
   remainder <- abs(metrics - decomposed.metrics$trend - decomposed.metrics$seasonal)
   seasonal <- abs(decomposed.metrics$seasonal)
   sapply(colnames(metrics), function(m) {
-    cc <- complete.cases(remainder[,m], seasonal[,m])
-    sum(remainder[cc, m], na.rm = TRUE) / sum(seasonal[cc, m], na.rm = TRUE)
+    cc <- complete.cases(remainder[, m], seasonal[, m])
+    sum(remainder[cc, m], na.rm = TRUE)/sum(seasonal[cc, m], na.rm = TRUE)
   })
 }
 
@@ -607,47 +633,47 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
       # TODO check ranges as in filter metrics?
       left <- as.numeric(w[1:width])
       current <- as.numeric(w[width + 1])
-      right <- as.numeric(w[(width + 1):(2 * width + 1)]) # includes current
+      right <- as.numeric(w[(width + 1):(2 * width + 1)])  # includes current
       if (all(is.na(left))) {
         if (!is.na(current)) {
-          4 # appeared
+          4  # appeared
         } else {
-          -4 # remained NA
+          -4  # remained NA
         }
       } else if (is.na(current)) {
         if (!is.na(last(left)) & all(is.na(right))) {
-          5 # disappeared
+          5  # disappeared
         } else {
           NA
         }
       } else { # current is not NA
-        q <- quantile(left, probs = c(0, q.prob, 0.5, 1 - q.prob, 1), na.rm = TRUE, type = 1)
+        q <- quantile(left, probs = c(0, q.prob, 0.5, 1 - q.prob, 1),
+                      na.rm = TRUE, type = 1)
         if (q[1] == q[5]) { # was constant
           if (current == q[1]) {
-            -1 # remained the same
+            -1  # remained the same
           } else {
-            1 # constant changed
+            1  # constant changed
           }
         } else { # wasn't constant
           rr <- range(right, na.rm = TRUE)
           if (is.finite(rr[1]) & (rr[1] == rr[2]) & (is.na(last(left)) | (last(left) != rr[1]))) {
-            6 # became constant
+            6  # became constant
           } else {
             dq <- q[4] - q[2]
             r <- q[5] - q[1]
             lc <- current - q[3]
             if (dq == 0) { # majority ~= median
-              if (abs(lc / r) > 1) {
-                3 # outside min-max range
+              if (abs(lc/r) > 1) {
+                3  # outside min-max range
               } else {
-                -3 # inside min-max range
+                -3  # inside min-max range
               }
             } else {
-              if ((abs(lc / dq) > min.score)
-                  & (abs(lc / r) > 1)) {
-                2 # outside iqr and min-max range
+              if ((abs(lc/dq) > min.score) & (abs(lc/r) > 1)) {
+                2  # outside iqr and min-max range
               } else {
-                -2 # inside iqr or min-max range
+                -2  # inside iqr or min-max range
               }
             }
           }
@@ -658,34 +684,34 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
 }
 
 sum.xts.rows <- function(metrics) {
-  xts(rowSums(metrics, na.rm=T), index(metrics))
+  xts(rowSums(metrics, na.rm = T), index(metrics))
 }
 
 find.sparse <- function(metrics, fill = 0.1) {
-  l = nrow(metrics)
+  l <- nrow(metrics)
   metrics[,
-          which(sapply(metrics, function(v) {(sum(is.na(v)) / l) > fill})),
-          drop=FALSE]
+          which(sapply(metrics, function(v) {(sum(is.na(v))/l) > fill})),
+          drop = FALSE]
 }
 
 svd.prepare <- function(metrics) {
-  m = metrics[2:nrow(metrics),] # first row is NA for counters
-  m = exclude.columns(find.sparse(m), m)
-  m = exclude.columns(find.constant(m), m)
+  m <- metrics[2:nrow(metrics), ]  # first row is NA for counters
+  m <- exclude.columns(find.sparse(m), m)
+  m <- exclude.columns(find.constant(m), m)
   na.approx(m)
 }
 
 # then use multiplot.sorted(metrics, abs(udv$v[,component]))
 svd.u.xts <- function(udv, metrics) {
-  xts(udv$u, order.by=index(metrics))
+  xts(udv$u, order.by = index(metrics))
 }
 
-top.loadings <- function(loadings, n=3) {
-    as.vector(apply(abs(loadings), 2, order, decreasing=T)[1:n,])
+top.loadings <- function(loadings, n = 3) {
+  as.vector(apply(abs(loadings), 2, order, decreasing = T)[1:n, ])
 }
 
 non.zero.columns <- function(metrics) {
-  colnames(metrics)[which(colSums(metrics > 0, na.rm=TRUE) > 0)]
+  colnames(metrics)[which(colSums(metrics > 0, na.rm = TRUE) > 0)]
 }
 
 mc.xts.apply <- function(metrics, FUN, ...) {
@@ -697,13 +723,13 @@ mc.xts.apply <- function(metrics, FUN, ...) {
 # then find outliers to get mean shifts
 diff.median <- function(metrics, window) {
   mc.xts.apply(metrics, function(m) {
-    diff(rollapply(m, window, fill=NA, align="center", FUN=median, na.rm=T),
-         na.pad=TRUE)
+    diff(rollapply(m, window, fill = NA, align = "center", FUN = median, na.rm = T), 
+      na.pad = TRUE)
   })
 }
 
 widen <- function(x, width) {
-  lags <- tree.merge.xts(lapply(-width : width, function(n) {
+  lags <- tree.merge.xts(lapply(-width:width, function(n) {
     lx <- lag.xts(x, n)
     lx[is.na(lx)] <- FALSE
     lx
@@ -719,18 +745,23 @@ cooccurences <- function(x, metrics, wider = 0) {
 }
 
 find.periods <- function(metrics, significance = 0.99, ...) {
-  nfp <- mclapply(metrics, function(m) {
-    spec <- spec.mtm(as.ts(m), plot=FALSE, Ftest=TRUE, returnZeroFreq=FALSE, ...)
-    f.sig <- spec$mtm$Ftest > qf(significance, 2, 2*spec$mtm$k-2)
-    if (any(f.sig, na.rm=TRUE)) {
-      data.frame(name=names(m)[1], period=1/spec$freq[f.sig], Ftest=spec$mtm$Ftest[f.sig])
-    } else {
-      data.frame()
-    }
-  })
+  nfp <- mclapply(
+    metrics,
+    function(m) {
+      spec <- spec.mtm(as.ts(m), plot = FALSE, Ftest = TRUE,
+                       returnZeroFreq = FALSE, ...)
+      f.sig <- spec$mtm$Ftest > qf(significance, 2, 2 * spec$mtm$k - 2)
+      if (any(f.sig, na.rm = TRUE)) {
+        data.frame(name = names(m)[1],
+                   period = 1/spec$freq[f.sig],
+                   Ftest = spec$mtm$Ftest[f.sig])
+      } else {
+        data.frame()
+      }
+    })
   result <- rbind.fill(nfp)
   result$name <- as.character(result$name)
-  result[order(result$Ftest),]
+  result[order(result$Ftest), ]
 }
 
 remove.variable <- function(metrics, variable) {
@@ -742,34 +773,28 @@ remove.variable <- function(metrics, variable) {
   m.r
 }
 
-# works for cmdscale and tsne
+# works for cmdscale and tsne TODO allow zooming
 explore.2d <- function(embedding, metrics) {
-    embedding_df <- data.frame(x = embedding[,1], y = embedding[,2])
-    rownames(embedding_df) <- colnames(metrics)
-    app <- 
-        shinyApp(
-            ui = fluidPage(
-                helpText("select points to draw series"),
-                # TODO allow zooming
-                plotOutput("embedding_plot", click = "embedding_click"),
-                dygraphOutput("series")),
-            server = function(input, output) {
-                output$embedding_plot <- renderPlot({
-                    ggplot(embedding_df, aes(x,y)) + geom_point()
-                })
-                output$series <- renderDygraph({
-                    n <- rownames(nearPoints(embedding_df,
-                                             input$embedding_click))[1]
-                    dygraph(metrics[, n, drop = FALSE], main = n)
-                })
-            })
-    runApp(app)
+  embedding_df <- data.frame(x = embedding[, 1], y = embedding[, 2])
+  rownames(embedding_df) <- colnames(metrics)
+  app <- shinyApp(ui = fluidPage(helpText("select points to draw series"), plotOutput("embedding_plot", 
+    click = "embedding_click"), dygraphOutput("series")), server = function(input, 
+    output) {
+    output$embedding_plot <- renderPlot({
+      ggplot(embedding_df, aes(x, y)) + geom_point()
+    })
+    output$series <- renderDygraph({
+      n <- rownames(nearPoints(embedding_df, input$embedding_click))[1]
+      dygraph(metrics[, n, drop = FALSE], main = n)
+    })
+  })
+  runApp(app)
 }
 
 drop.zero.dist <- function(d) {
-    m <- as.matrix(d)
-    z <- which(m == 0, arr.ind = TRUE)
-    di <- z[z[,1] > z[,2], 1]
-    mu <- m[-di, -di]
-    as.dist(mu)
-}
+  m <- as.matrix(d)
+  z <- which(m == 0, arr.ind = TRUE)
+  di <- z[z[, 1] > z[, 2], 1]
+  mu <- m[-di, -di]
+  as.dist(mu)
+} 
