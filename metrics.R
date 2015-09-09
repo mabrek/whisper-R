@@ -25,7 +25,7 @@ lsd <- function(pos = 1) {
              invert = T))
 }
 
-read.whisper.export <- function(file.name) {
+read_whisper_export <- function(file.name) {
   as.xts(
     read.zoo(
       file.name,
@@ -36,15 +36,15 @@ read.whisper.export <- function(file.name) {
       drop = FALSE))
 }
 
-load.metrics <- function(path = ".") {
-  merge.files(list.files(path, full.names = TRUE))
+load_metrics <- function(path = ".") {
+  merge_files(list.files(path, full.names = TRUE))
 }
 
-merge.files <- function(files) {
-  tree.merge.xts(files, FUN = read.whisper.export)
+merge_files <- function(files) {
+  tree_merge_xts(files, FUN = read_whisper_export)
 }
 
-tree.merge.xts <- function(x, FUN = function(m) {m}) {
+tree_merge_xts <- function(x, FUN = function(m) {m}) {
   k <- length(x)
   if (k == 1) {
     r <- FUN(x[[1]])
@@ -54,12 +54,12 @@ tree.merge.xts <- function(x, FUN = function(m) {m}) {
     }
     r
   } else if (k > 1) {
-    merge.xts(tree.merge.xts(x[1:(k %/% 2)], FUN = FUN), 
-              tree.merge.xts(x[(k %/% 2 + 1):k], FUN = FUN))
+    merge.xts(tree_merge_xts(x[1:(k %/% 2)], FUN = FUN), 
+              tree_merge_xts(x[(k %/% 2 + 1):k], FUN = FUN))
   }
 }
 
-read.jmeter.csv <- function(file.name) {
+read_jmeter_csv <- function(file.name) {
   m <- read.table(
     file.name,
     header = TRUE,
@@ -76,10 +76,10 @@ read.jmeter.csv <- function(file.name) {
   m
 }
 
-aggregate.jmeter <- function(jmeter, interval.seconds) {
+aggregate_jmeter <- function(jmeter, interval.seconds) {
   columns <- setdiff(colnames(jmeter),
                      c("label", "responseCode", "timeStamp.raw"))
-  tree.merge.xts(
+  tree_merge_xts(
     mclapply(
       c(levels(jmeter[, "label"]), ""),
       function(l) {
@@ -133,7 +133,7 @@ aggregate.jmeter <- function(jmeter, interval.seconds) {
   }))
 }
 
-read.fping <- function(file.name) {
+read_fping <- function(file.name) {
   as.xts(
     read.zoo(
       file.name,
@@ -141,7 +141,7 @@ read.fping <- function(file.name) {
       FUN = function(t) {as.POSIXct(t, origin = "1970-01-01 00:00:00")}))
 }
 
-aggregate.fping <- function(fping, interval.seconds) {
+aggregate_fping <- function(fping, interval.seconds) {
   ticks <- align.time(index(fping), interval.seconds)
   loss.raw <- diff(fping[, "seq"], na.pad = T) - 1
   loss <- as.xts(aggregate(loss.raw, ticks, sum, na.rm = TRUE)) /
@@ -158,18 +158,18 @@ aggregate.fping <- function(fping, interval.seconds) {
   aggregated
 }
 
-heatmap <- function(metric, bins = 500) {
+draw_heatmap <- function(metric, bins = 500) {
   ggplot(fortify(metric, melt = T), aes(Index, Value)) +
     stat_bin2d(bins = bins) + 
     scale_fill_gradientn(colours = rainbow(7)) + 
     facet_grid(Series ~ .)
 }
 
-set.cores <- function(cores = detectCores()) {
+set_cores <- function(cores = detectCores()) {
   options(mc.cores = cores)
 }
 
-get.correlation.matrix <- function(metrics, complete = 0.1,
+get_correlation_matrix <- function(metrics, complete = 0.1,
                                    method = "spearman", fill = 0.1) {
   counts <- sapply(metrics, function(x) {sum(!is.na(x))})
   n <- ncol(metrics)
@@ -202,22 +202,22 @@ get.correlation.matrix <- function(metrics, complete = 0.1,
   r
 }
 
-get.correlation.distance <- function(metrics, complete = 0.1,
+get_correlation_distance <- function(metrics, complete = 0.1,
                                      method = "spearman", fill = 0.1) {
-  d <- as.dist(1 - abs(get.correlation.matrix(metrics, complete, method, fill)))
+  d <- as.dist(1 - abs(get_correlation_matrix(metrics, complete, method, fill)))
   d[d > 1] <- 1
   d[d < 0] <- 0
   d
 }
 
-filter.statsd <- function(metrics) {
-  filter.colnames("sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts",
+filter_statsd <- function(metrics) {
+  filter_colnames("sum(_50|_90|_99)$|mean(_50|_90|_99)?$|^stats_counts",
                   metrics, 
                   invert = TRUE)
 }
 
-filter.codahale_like <- function(metrics, counter.maxgap = 1) {
-  metrics <- filter.colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$|\\.meanRate$|\\.publish\\.value$|MemtableColumnsCount\\.value$", 
+filter_codahale_like <- function(metrics, counter.maxgap = 1) {
+  metrics <- filter_colnames("\\.acceleration\\.[^\\.]+$|\\.(day|fifteen|five|one)$|\\.(mean|geometric_mean|harmonic_mean|kurtosis|skewness|standard_deviation|variance)$|\\.reductions_since_last_call$|\\.n$|\\.stddev$|MinuteRate$|\\.meanRate$|\\.publish\\.value$|MemtableColumnsCount\\.value$", 
     metrics, invert = TRUE)
   metrics <- metrics[,
                      which(sapply(metrics[], function(v) {any(!is.na(v))})),
@@ -228,7 +228,7 @@ filter.codahale_like <- function(metrics, counter.maxgap = 1) {
   counterNames <- grep("jvm\\.daemon_thread_count", counterNames,
                        invert = TRUE, value = TRUE)
   counters <- metrics[, counterNames, drop = FALSE]
-  metrics <- exclude.columns(counters, metrics)
+  metrics <- exclude_columns(counters, metrics)
   counters[1, which(is.na(counters[1, ]))] <- 0
   counters.diff <- diff(na.locf(na.approx(counters, maxgap = counter.maxgap)), 
                         na.pad = TRUE)
@@ -242,7 +242,7 @@ filter.codahale_like <- function(metrics, counter.maxgap = 1) {
   metrics
 }
 
-filter.metrics <- function(metrics, change.threshold = 0.01) {
+filter_metrics <- function(metrics, change_threshold = 0.01) {
   cpu.columns <- grep("\\.cpu\\.[[:digit:]]+\\.cpu\\.(softirq|steal|system|user|wait|interrupt|idle)\\.value$", 
     colnames(metrics), value = TRUE)
   cpu.sums <- sapply(
@@ -270,24 +270,24 @@ filter.metrics <- function(metrics, change.threshold = 0.01) {
             is.finite(ranges[2,]) &
             (!grepl("load\\.(longterm|midterm|shortterm)$", columns) |
                ranges[2,] > 0.5) &
-             abs((ranges[2, ] - ranges[1, ])/medians) > change.threshold  # TODO wrong for counters before diff
+             abs((ranges[2, ] - ranges[1, ])/medians) > change_threshold  # TODO wrong for counters before diff
             & (!grepl("if_octets", columns) | ranges[2, ] > 1000) &
             (!grepl("if_packets", columns) | ranges[2, ] > 10), 
           drop = FALSE]
 }
 
-scale.range <- function(metrics) {
+scale_range <- function(metrics) {
   ranges <- apply(metrics, 2, range, na.rm = TRUE)
   mins <- matrix(ranges[1, ], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
   maxs <- matrix(ranges[2, ], nrow = nrow(metrics), ncol = ncol(metrics), byrow = TRUE)
   (metrics - mins)/(maxs - mins)
 }
 
-get.relative.time <- function(metrics) {
+get_relative_time <- function(metrics) {
   as.numeric(index(metrics) - min(index(metrics)))
 }
 
-get.abs.correlation <- function(x, metrics, subset = 1:nrow(metrics),
+get_abs_correlation <- function(x, metrics, subset = 1:nrow(metrics),
                                 complete = 0.1, method = "spearman") {
   x <- coredata(x[subset])
   nx <- sum(!is.na(x))
@@ -311,48 +311,48 @@ get.abs.correlation <- function(x, metrics, subset = 1:nrow(metrics),
 }
 
 ## better for metrics with linear trends
-get.diff.correlation <- function(x, metrics, ...) {
-  get.abs.correlation(diff(x), diff(metrics), ...)
+get_diff_correlation <- function(x, metrics, ...) {
+  get_abs_correlation(diff(x), diff(metrics), ...)
 }
 
-get.periodogram.distance <- function(x, metrics, subset = 1:nrow(metrics)) {
+get_periodogram_distance <- function(x, metrics, subset = 1:nrow(metrics)) {
   simplify2array(mclapply(metrics, function(m) {
     diss.INT.PER(as.vector(x[subset]), as.vector(m[subset]), normalize = T)
   }))
 }
 
-exclude.columns <- function(what, from) {
+exclude_columns <- function(what, from) {
   from[,
        setdiff(colnames(from), colnames(what)),
        drop=FALSE]
 }
 
-find.constant <- function(metrics, subset = 1:nrow(metrics)) {
+find_constant <- function(metrics, subset = 1:nrow(metrics)) {
   ranges <- sapply(metrics[subset, ], function(v) {
     range(v, na.rm = TRUE)
   })
   metrics[, ranges[1, ] == ranges[2, ], drop = FALSE]
 }
 
-filter.any.na <- function(metrics) {
+filter_any_na <- function(metrics) {
   metrics[,
           which(sapply(metrics, function(v) {all(!is.na(v))})),
           drop = FALSE]
 }
 
-find.any.na <- function(metrics) {
+find_any_na <- function(metrics) {
   metrics[,
           which(sapply(metrics, function(v) {any(is.na(v))})),
           drop = FALSE]
 }
 
-find.na <- function(metrics, subset = 1:nrow(metrics)) {
+find_na <- function(metrics, subset = 1:nrow(metrics)) {
   metrics[,
           which(sapply(metrics[subset, ], function(v) {all(is.na(v))})),
           drop = FALSE]
 }
 
-find.changed.sd <- function(metrics, a, b) {
+find_changed_sd <- function(metrics, a, b) {
   sd.a <- sapply(metrics[a, ], sd, na.rm = TRUE)
   sd.b <- sapply(metrics[b, ], sd, na.rm = TRUE)
   metrics[,
@@ -360,7 +360,7 @@ find.changed.sd <- function(metrics, a, b) {
           drop = FALSE]
 }
 
-find.changed.mean <- function(metrics, a, b) {
+find_changed_mean <- function(metrics, a, b) {
   mean.a <- sapply(metrics[a, ], mean, na.rm = TRUE)
   mean.b <- sapply(metrics[b, ], mean, na.rm = TRUE)
   metrics[,
@@ -369,7 +369,7 @@ find.changed.mean <- function(metrics, a, b) {
           drop = FALSE]
 }
 
-filter.colnames <- function(pattern, metrics, ...) {
+filter_colnames <- function(pattern, metrics, ...) {
   metrics[,
           grep(pattern, colnames(metrics), ...),
           drop = FALSE]
@@ -418,7 +418,7 @@ multiplot <- function(metrics, limit = 15, vline = NA) {
 }
 
 view <- function(pattern, metrics, limit = 15) {
-  multiplot(filter.colnames(pattern, metrics, ignore.case = TRUE), limit = limit)
+  multiplot(filter_colnames(pattern, metrics, ignore.case = TRUE), limit = limit)
 }
 
 sameplot <- function(metrics, ...) {
@@ -426,7 +426,7 @@ sameplot <- function(metrics, ...) {
 }
 
 # TODO pass function to compare
-multiplot.sorted <- function(metrics, comparison, decreasing = TRUE, ...) {
+multiplot_sorted <- function(metrics, comparison, decreasing = TRUE, ...) {
   sort.order <- order(comparison, decreasing = decreasing)
   data <- metrics[,
                   sort.order,
@@ -437,17 +437,17 @@ multiplot.sorted <- function(metrics, comparison, decreasing = TRUE, ...) {
   multiplot(data, ...)
 }
 
-robust.histogram <- function(x, probs = c(0.01, 0.99), ...) {
+robust_histogram <- function(x, probs = c(0.01, 0.99), ...) {
   qplot(x = x, xlim = quantile(x, probs, na.rm = TRUE), ...)
 }
 
-find.breakpoints <- function(metrics, segment = 0.25) {
+find_breakpoints <- function(metrics, segment = 0.25) {
   bpl <- mclapply(metrics, function(m) {
     m <- na.omit(m)
     if ((segment < 1 & floor(segment * length(m)) <= 2) | segment > 1) {
       data.frame()
     } else {
-      bp <- breakpoints(coredata(m) ~ get.relative.time(m), h = segment)$breakpoints
+      bp <- breakpoints(coredata(m) ~ get_relative_time(m), h = segment)$breakpoints
       if (is.na(bp)) {
         data.frame()
       } else {
@@ -459,7 +459,7 @@ find.breakpoints <- function(metrics, segment = 0.25) {
   result[order(result$time), ]
 }
 
-get.distribution.change <- function(metric, window.seconds = 300,
+get_distribution_change <- function(metric, window.seconds = 300,
                                     by.seconds = 60, p.value = 0.05, fill = 50) {
   index.range <- range(index(metric))
   half.window <- window.seconds %/% 2
@@ -493,13 +493,13 @@ get.distribution.change <- function(metric, window.seconds = 300,
 }
 
 
-find.nonlinear <- function(metrics, subset = 1:nrow(metrics)) {
+find_nonlinear <- function(metrics, subset = 1:nrow(metrics)) {
   diffs <- simplify2array(mclapply(as.ts(metrics[subset, ]), ndiffs))
   indices <- order(diffs, decreasing = TRUE)
   metrics[, indices[diffs[indices] > 1], drop = FALSE]
 }
 
-find.autocorrelated <- function(metrics, subset = 1:nrow(metrics), lag = 100, p.value = 0.05) {
+find_autocorrelated <- function(metrics, subset = 1:nrow(metrics), lag = 100, p.value = 0.05) {
   ac <- simplify2array(mclapply(metrics[subset, ], function(m) {
     bt <- Box.test(m, lag = lag, type = "Ljung-Box")
     c(bt$statistic, bt$p.value)
@@ -508,13 +508,13 @@ find.autocorrelated <- function(metrics, subset = 1:nrow(metrics), lag = 100, p.
   metrics[, na.exclude(indices[ac[2, indices] < p.value]), drop = FALSE]
 }
 
-get.autocorrelation <- function(metrics, subset = 1:nrow(metrics), lag) {
+get_autocorrelation <- function(metrics, subset = 1:nrow(metrics), lag) {
   simplify2array(mclapply(metrics[subset, ], function(m) {
     cor(m, lag(m, lag), use = "na.or.complete")
   }))
 }
 
-plot.medoids <- function(metrics, pamobject, limit = 50) {
+plot_medoids <- function(metrics, pamobject, limit = 50) {
   sorted <- order(pamobject$silinfo$clus.avg.widths * pamobject$clusinfo[, "size"], 
     decreasing = TRUE)
   sorted <- sorted[which(pamobject$clusinfo[sorted, "size"] > 1)]
@@ -527,7 +527,7 @@ plot.medoids <- function(metrics, pamobject, limit = 50) {
   multiplot(data, limit)
 }
 
-plot.cluster <- function(metrics, pamobject, id, limit = 50) {
+plot_cluster <- function(metrics, pamobject, id, limit = 50) {
   multiplot(
     metrics[,
             names(
@@ -539,20 +539,20 @@ plot.cluster <- function(metrics, pamobject, id, limit = 50) {
     limit)
 }
 
-par.pam <- function(d, krange) {
+par_pam <- function(d, krange) {
   mclapply(krange, function(k) {
     pam(d, k, diss = TRUE)
   })
 }
 
-mc.period.apply <- function(metrics, INDEX, FUN, ...) {
-  tree.merge.xts(mclapply(metrics, function(m) {
+mc_period_apply <- function(metrics, INDEX, FUN, ...) {
+  tree_merge_xts(mclapply(metrics, function(m) {
     period.apply(m, INDEX, FUN, ...)
   }))
 }
 
-mc.lm <- function(metrics) {
-  rel.time <- get.relative.time(metrics)
+mc_lm <- function(metrics) {
+  rel.time <- get_relative_time(metrics)
   n <- names(metrics)
   lms <- mclapply(metrics, function(m) {
     fit <- lm(coredata(m) ~ rel.time, na.action = na.omit)
@@ -567,8 +567,8 @@ mc.lm <- function(metrics) {
   }))
 }
 
-mc.rq <- function(metrics) {
-  rel.time <- get.relative.time(metrics)
+mc_rq <- function(metrics) {
+  rel.time <- get_relative_time(metrics)
   lms <- simplify2array(mclapply(metrics, function(m) {
     rq(coredata(m) ~ rel.time, na.action = na.omit)$residuals
   }))
@@ -577,7 +577,7 @@ mc.rq <- function(metrics) {
   m.r
 }
 
-decompose.median <- function(metrics, period) {
+decompose_median <- function(metrics, period) {
   half.window <- period %/% 2
   median.window <- half.window * 2 + 1
   l <- nrow(metrics)
@@ -608,7 +608,7 @@ decompose.median <- function(metrics, period) {
   list(trend = trend, seasonal = seasonal)
 }
 
-non.seasonal.proportion <- function(metrics, decomposed.metrics) {
+non_seasonal_proportion <- function(metrics, decomposed.metrics) {
   remainder <- abs(metrics - decomposed.metrics$trend - decomposed.metrics$seasonal)
   seasonal <- abs(decomposed.metrics$seasonal)
   sapply(colnames(metrics), function(m) {
@@ -617,18 +617,18 @@ non.seasonal.proportion <- function(metrics, decomposed.metrics) {
   })
 }
 
-maybe.deseason <- function(metrics, period, proportion = 0.3) {
-  d <- decompose.median(metrics, period)
-  nsp <- non.seasonal.proportion(metrics, d)
+maybe_deseason <- function(metrics, period, proportion = 0.3) {
+  d <- decompose_median(metrics, period)
+  nsp <- non_seasonal_proportion(metrics, d)
   seasonal <- metrics[, !is.na(nsp) & (nsp < proportion), drop = FALSE]
-  other <- exclude.columns(seasonal, metrics)
+  other <- exclude_columns(seasonal, metrics)
   seasonal <- seasonal - d$seasonal[, names(seasonal)]
   names(seasonal) <- paste(names(seasonal), "deseason", sep = ".")
   merge.xts(seasonal, other)
 }
 
-find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
-  tree.merge.xts(mclapply(metrics, function(m) {
+find_outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
+  tree_merge_xts(mclapply(metrics, function(m) {
     rollapply(m, 2 * width + 1, fill = NA, align = "center", FUN = function(w) {
       # TODO check ranges as in filter metrics?
       left <- as.numeric(w[1:width])
@@ -683,53 +683,53 @@ find.outliers <- function(metrics, width, q.prob = 0.1, min.score = 5) {
   }))
 }
 
-sum.xts.rows <- function(metrics) {
+sum_xts_rows <- function(metrics) {
   xts(rowSums(metrics, na.rm = T), index(metrics))
 }
 
-find.sparse <- function(metrics, fill = 0.1) {
+find_sparse <- function(metrics, fill = 0.1) {
   l <- nrow(metrics)
   metrics[,
           which(sapply(metrics, function(v) {(sum(is.na(v))/l) > fill})),
           drop = FALSE]
 }
 
-svd.prepare <- function(metrics) {
+svd_prepare <- function(metrics) {
   m <- metrics[2:nrow(metrics), ]  # first row is NA for counters
-  m <- exclude.columns(find.sparse(m), m)
-  m <- exclude.columns(find.constant(m), m)
+  m <- exclude_columns(find_sparse(m), m)
+  m <- exclude_columns(find_constant(m), m)
   na.approx(m)
 }
 
-# then use multiplot.sorted(metrics, abs(udv$v[,component]))
-svd.u.xts <- function(udv, metrics) {
+# then use multiplot_sorted(metrics, abs(udv$v[,component]))
+svd_u_xts <- function(udv, metrics) {
   xts(udv$u, order.by = index(metrics))
 }
 
-top.loadings <- function(loadings, n = 3) {
+get_top_loadings <- function(loadings, n = 3) {
   as.vector(apply(abs(loadings), 2, order, decreasing = T)[1:n, ])
 }
 
-non.zero.columns <- function(metrics) {
+get_non_zero_columns <- function(metrics) {
   colnames(metrics)[which(colSums(metrics > 0, na.rm = TRUE) > 0)]
 }
 
-mc.xts.apply <- function(metrics, FUN, ...) {
-  tree.merge.xts(mclapply(metrics, function(m) {
+mc_xts_apply <- function(metrics, FUN, ...) {
+  tree_merge_xts(mclapply(metrics, function(m) {
     FUN(m, ...)
   }))
 }
 
 # then find outliers to get mean shifts
-diff.median <- function(metrics, window) {
-  mc.xts.apply(metrics, function(m) {
+diff_median <- function(metrics, window) {
+  mc_xts_apply(metrics, function(m) {
     diff(rollapply(m, window, fill = NA, align = "center", FUN = median, na.rm = T), 
       na.pad = TRUE)
   })
 }
 
 widen <- function(x, width) {
-  lags <- tree.merge.xts(lapply(-width:width, function(n) {
+  lags <- tree_merge_xts(lapply(-width:width, function(n) {
     lx <- lag.xts(x, n)
     lx[is.na(lx)] <- FALSE
     lx
@@ -744,7 +744,7 @@ cooccurences <- function(x, metrics, wider = 0) {
   colSums(metrics & x)
 }
 
-find.periods <- function(metrics, significance = 0.99, ...) {
+find_periods <- function(metrics, significance = 0.99, ...) {
   nfp <- mclapply(
     metrics,
     function(m) {
@@ -764,7 +764,7 @@ find.periods <- function(metrics, significance = 0.99, ...) {
   result[order(result$Ftest), ]
 }
 
-remove.variable <- function(metrics, variable) {
+remove_variable <- function(metrics, variable) {
   lms <- simplify2array(mclapply(metrics, function(m) {
     rq(coredata(m) ~ variable, na.action = na.omit)$residuals
   }))
@@ -774,7 +774,7 @@ remove.variable <- function(metrics, variable) {
 }
 
 # works for cmdscale and tsne TODO allow zooming
-explore.2d <- function(embedding, metrics) {
+explore_2d <- function(embedding, metrics) {
   embedding_df <- data.frame(x = embedding[, 1], y = embedding[, 2])
   rownames(embedding_df) <- colnames(metrics)
   app <- shinyApp(ui = fluidPage(helpText("select points to draw series"), plotOutput("embedding_plot", 
@@ -791,7 +791,7 @@ explore.2d <- function(embedding, metrics) {
   runApp(app)
 }
 
-drop.zero.dist <- function(d) {
+drop_zero_dist <- function(d) {
   m <- as.matrix(d)
   z <- which(m == 0, arr.ind = TRUE)
   di <- z[z[, 1] > z[, 2], 1]
