@@ -798,3 +798,32 @@ drop_zero_dist <- function(d) {
   mu <- m[-di, -di]
   as.dist(mu)
 } 
+
+shiny_plot <- function(metrics, limit = 100) {
+  data <- metrics
+  if (length(colnames(data)) == 0) {
+    colnames(data) <- 1:ncol(data)
+  }
+  data <- data[,
+               which(sapply(data, function(v) {any(!is.na(v))})),
+               drop = FALSE]
+  data <- data[, min(limit, ncol(data))]
+  app <- shinyApp(
+    ui = fluidPage(
+      lapply(
+        1:ncol(data),
+        function(n) {
+          dygraphOutput(paste("series_", n, sep = ""))
+        })
+      ),
+    server = function(input, output) {
+      lapply(
+        1:ncol(data),
+        function(n) {
+          output[[paste("series_", n, sep = "")]] <- renderDygraph({
+            dygraph(data[, n, drop = FALSE], group = "series")
+          })
+        })
+    })
+  runApp(app)
+}
