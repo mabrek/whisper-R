@@ -4,5 +4,4 @@ find range in file:
 whisper-dump.py collectd/host/cpu-0/cpu-user/value.wsp | grep -E '^[[:digit:]]+'| cut -f 2 -d ' ' | sort -n | head
 whisper-dump.py collectd/host/cpu-0/cpu-user/value.wsp | grep -E '^[[:digit:]]+'| cut -f 2 -d ' ' | sort -n | tail
 
-TODO:
-    parallel extract.sh
+ whisper]$ find -name '*.wsp' | parallel --gnu ~/extract-one.sh 1410772800 1410783600 /tmp/whisper-export/ {}
