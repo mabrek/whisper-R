@@ -813,7 +813,7 @@ shiny_plot <- function(metrics, limit = 100) {
       lapply(
         1:ncol(data),
         function(n) {
-          dygraphOutput(paste("series_", n, sep = ""))
+          dygraphOutput(paste("series_", n, sep = ""), height = "100px")
         })
       ),
     server = function(input, output) {
@@ -821,7 +821,8 @@ shiny_plot <- function(metrics, limit = 100) {
         1:ncol(data),
         function(n) {
           output[[paste("series_", n, sep = "")]] <- renderDygraph({
-            dygraph(data[, n, drop = FALSE], group = "series")
+            single <- data[, n, drop = FALSE]
+            dygraph(single, group = "series")
           })
         })
     })
