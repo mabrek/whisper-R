@@ -813,17 +813,28 @@ shiny_plot <- function(metrics, limit = 100) {
       lapply(
         1:ncol(data),
         function(n) {
-          dygraphOutput(paste("series_", n, sep = ""), height = "100px")
+          fluidRow(
+            column(
+              dygraphOutput(paste("graph_series_", n, sep = ""),
+                            height = "100px"),
+              width = 6),
+            column(
+              textOutput(paste("text_series_", n, sep = "")),
+              width = 6))
         })
       ),
     server = function(input, output) {
       lapply(
         1:ncol(data),
         function(n) {
-          output[[paste("series_", n, sep = "")]] <- renderDygraph({
-            single <- data[, n, drop = FALSE]
+          single <- data[, n, drop = FALSE]
+          output[[paste("graph_series_", n, sep = "")]] <- renderDygraph({
             dygraph(single, group = "series")
           })
+          output[[paste("text_series_", n, sep = "")]] <- renderText({
+            colnames(single)
+          })
+          
         })
     })
   runApp(app)
