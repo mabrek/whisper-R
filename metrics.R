@@ -807,7 +807,7 @@ shiny_plot <- function(metrics, limit = 100) {
   data <- data[,
                which(sapply(data, function(v) {any(!is.na(v))})),
                drop = FALSE]
-  data <- data[, min(limit, ncol(data))]
+  data <- data[, 1:min(limit, ncol(data))]
   app <- shinyApp(
     ui = fluidPage(
       lapply(
