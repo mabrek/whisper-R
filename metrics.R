@@ -814,6 +814,7 @@ shinyplot <- function(metrics, limit = 100) {
         1:ncol(data),
         function(n) {
           fluidRow(
+            style = "padding-bottom: 5px;",
             column(
               dygraphOutput(paste("graph_series_", n, sep = ""),
                             height = "100px"),
