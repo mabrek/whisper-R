@@ -818,7 +818,7 @@ shinyplot <- function(metrics, limit = 100) {
               dygraphOutput(paste("graph_series_", n, sep = ""),
                             height = "100px"),
               width = 6),
-            column(
+            column( # TODO center text vertically
               textOutput(paste("text_series_", n, sep = "")),
               width = 6))
         })
