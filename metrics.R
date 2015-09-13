@@ -830,7 +830,8 @@ shinyplot <- function(metrics, limit = 100) {
           single <- data[, n, drop = FALSE]
           output[[paste("graph_series_", n, sep = "")]] <- renderDygraph({
             dygraph(single, group = "series") %>%
-              dyLegend(show = "never")
+              dyLegend(show = "never") %>%
+              dyOptions(drawXAxis = (n %% 9 == 0) | (n == ncol(data)))
           })
           output[[paste("text_series_", n, sep = "")]] <- renderText({
             colnames(single)
