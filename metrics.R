@@ -799,7 +799,7 @@ drop_zero_dist <- function(d) {
   as.dist(mu)
 } 
 
-shiny_plot <- function(metrics, limit = 100) {
+shinyplot <- function(metrics, limit = 100) {
   data <- metrics
   if (length(colnames(data)) == 0) {
     colnames(data) <- 1:ncol(data)
