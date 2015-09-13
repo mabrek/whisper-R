@@ -441,18 +441,14 @@ robust_histogram <- function(x, probs = c(0.01, 0.99), ...) {
   qplot(x = x, xlim = quantile(x, probs, na.rm = TRUE), ...)
 }
 
-find_breakpoints <- function(metrics, segment = 0.25) {
+find_breakpoints <- function(metrics, ...) {
   bpl <- mclapply(metrics, function(m) {
     m <- na.omit(m)
-    if ((segment < 1 & floor(segment * length(m)) <= 2) | segment > 1) {
+    bp <- breakpoints(coredata(m) ~ get_relative_time(m), ...)$breakpoints
+    if (is.na(bp)) {
       data.frame()
     } else {
-      bp <- breakpoints(coredata(m) ~ get_relative_time(m), h = segment)$breakpoints
-      if (is.na(bp)) {
-        data.frame()
-      } else {
-        data.frame(name = names(m)[1], time = index(m)[bp])
-      }
+      data.frame(name = names(m)[1], time = index(m)[bp])
     }
   })
   result <- bind_rows(bpl)
@@ -799,7 +795,7 @@ drop_zero_dist <- function(d) {
   as.dist(mu)
 } 
 
-shinyplot <- function(metrics, limit = 100) {
+shinyplot <- function(metrics, limit = 100, breakpoints = data.frame()) {
   data <- metrics
   if (length(colnames(data)) == 0) {
     colnames(data) <- 1:ncol(data)
@@ -808,6 +804,7 @@ shinyplot <- function(metrics, limit = 100) {
                which(sapply(data, function(v) {any(!is.na(v))})),
                drop = FALSE]
   data <- data[, 1:min(limit, ncol(data))]
+  bp <- breakpoints
   app <- shinyApp(
     ui = fluidPage(
       lapply(
@@ -830,9 +827,14 @@ shinyplot <- function(metrics, limit = 100) {
         function(n) {
           single <- data[, n, drop = FALSE]
           output[[paste("graph_series_", n, sep = "")]] <- renderDygraph({
-            dygraph(single, group = "series") %>%
+            d <- dygraph(single, group = "series") %>%
               dyLegend(show = "never") %>%
               dyOptions(drawXAxis = (n %% 9 == 0) | (n == ncol(data)))
+            Reduce(function(g, b) {
+                     g %>% dyEvent(b)
+                   },
+                   bp[bp$name == colnames(single), ][["time"]],
+                   d)
           })
           output[[paste("text_series_", n, sep = "")]] <- renderText({
             colnames(single)
