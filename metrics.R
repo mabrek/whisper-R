@@ -441,16 +441,22 @@ robust_histogram <- function(x, probs = c(0.01, 0.99), ...) {
   qplot(x = x, xlim = quantile(x, probs, na.rm = TRUE), ...)
 }
 
-find_breakpoints <- function(metrics, ...) {
-  bpl <- mclapply(metrics, function(m) {
-    m <- na.omit(m)
-    bp <- breakpoints(coredata(m) ~ get_relative_time(m), ...)$breakpoints
-    if (is.na(bp)) {
-      data.frame()
-    } else {
-      data.frame(name = names(m)[1], time = index(m)[bp])
-    }
-  })
+find_breakpoints <- function(metrics, variable, ...) {
+  variable <- as.vector(variable)
+  if (nrow(metrics) != length(variable))
+    stop("nrow(metrics) must match length(variable)")
+  bpl <- mclapply(
+    metrics,
+    function(m) {
+      df <- data.frame(x = variable, y = as.vector(m), time = index(m))
+      df <- df[complete.cases(df), ]
+      bp <- breakpoints(df$y ~ df$x, ...)$breakpoints
+      if (all(is.na(bp))) {
+        data.frame()
+      } else {
+        data.frame(name = names(m), time = df$time[bp])
+      }
+    })
   result <- bind_rows(bpl)
   result[order(result$time), ]
 }
