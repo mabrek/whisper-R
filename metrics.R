@@ -819,6 +819,7 @@ shinyplot <- function(metrics, limit = 100, breakpoints = data.frame()) {
       lapply(
         1:ncol(data),
         function(n) {
+          # TODO column name filter
           fluidRow(
             style = "padding-bottom: 5px;",
             column(
