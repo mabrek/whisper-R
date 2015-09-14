@@ -290,7 +290,7 @@ get_relative_time <- function(metrics) {
   as.numeric(index(metrics) - min(index(metrics)))
 }
 
-get_abs_correlation <- function(x, metrics, subset = 1:nrow(metrics),
+get_correlation <- function(x, metrics, subset = 1:nrow(metrics),
                                 complete = 0.1, method = "spearman") {
   x <- coredata(x[subset])
   nx <- sum(!is.na(x))
@@ -301,7 +301,7 @@ get_abs_correlation <- function(x, metrics, subset = 1:nrow(metrics),
     if ((sum(ok) / max(nx, sum(!is.na(y)))) > complete) {
       x2 <- x[ok]
       y2 <- y[ok]
-      cr <- abs(cor(x2, y2, method = method))
+      cr <- cor(x2, y2, method = method)
       if (is.na(cr)) {
         0
       } else {
@@ -315,7 +315,7 @@ get_abs_correlation <- function(x, metrics, subset = 1:nrow(metrics),
 
 ## better for metrics with linear trends
 get_diff_correlation <- function(x, metrics, ...) {
-  get_abs_correlation(diff(x), diff(metrics), ...)
+  get_correlation(diff(x), diff(metrics), ...)
 }
 
 get_periodogram_distance <- function(x, metrics, subset = 1:nrow(metrics)) {
