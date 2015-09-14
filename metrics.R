@@ -804,7 +804,7 @@ drop_zero_dist <- function(d) {
   as.dist(mu)
 } 
 
-shinyplot <- function(metrics, limit = 100, breakpoints = data.frame()) {
+shinyplot <- function(metrics, limit = 100, breakpoints = data.frame(), vline = c()) {
   data <- metrics
   if (length(colnames(data)) == 0) {
     colnames(data) <- 1:ncol(data)
@@ -843,7 +843,7 @@ shinyplot <- function(metrics, limit = 100, breakpoints = data.frame()) {
             Reduce(function(g, b) {
                      g %>% dyEvent(b)
                    },
-                   bp[bp$name == colnames(single), ][["time"]],
+                   append(bp[bp$name == colnames(single), ][["time"]], vline),
                    d)
           })
           output[[paste("text_series_", n, sep = "")]] <- renderText({
