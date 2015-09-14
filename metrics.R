@@ -101,6 +101,7 @@ aggregate_jmeter <- function(jmeter, interval.seconds) {
                                            na.rm = TRUE))
         elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile,
                                                  probs = c(0.99), na.rm = TRUE))
+        elapsed.total <- as.xts(aggregate(elapsed.raw, ticks, sum, na.rm = TRUE))
         threads.median <- as.xts(aggregate(z[, "grpThreads"], ticks, median,
                                            na.rm = TRUE))
         start.time <- as.integer64(jmeter[idx, "timeStamp.raw"]) +
@@ -124,11 +125,13 @@ aggregate_jmeter <- function(jmeter, interval.seconds) {
                                             max, na.rm = TRUE))
         aggregated <- merge.xts(success, error, elapsed.min, elapsed.max,
                                 elapsed.median, elapsed.percentile99,
-                                threads.median, concurrency.min,
+                                elapsed.total, threads.median, concurrency.min,
                                 concurrency.max)
-    colnames(aggregated) <- str_c(prefix, ".", c("success.rate", "error.rate", 
-      "elapsed.min", "elapsed.max", "elapsed.median", "elapsed.percentile99", 
-      "threads.median", "concurrency.min", "concurrency.max"))
+        colnames(aggregated) <- str_c(
+          prefix, ".", c("success.rate", "error.rate", "elapsed.min",
+                         "elapsed.max", "elapsed.median", "elapsed.percentile99",
+                         "elapsed.total", "threads.median", "concurrency.min",
+                         "concurrency.max"))
     aggregated
   }))
 }
