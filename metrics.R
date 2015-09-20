@@ -769,13 +769,21 @@ find_periods <- function(metrics, significance = 0.99, ...) {
   result[order(result$Ftest), ]
 }
 
-remove_variable <- function(metrics, variable) {
-  lms <- simplify2array(mclapply(metrics, function(m) {
-    rq(coredata(m) ~ variable, na.action = na.omit)$residuals
-  }))
-  m.r <- xts(lms, order.by = index(metrics))
-  names(m.r) <- names(metrics)
-  m.r
+remove_variable <- function(metrics, variable_name,
+                            training_subset = 1:nrow(metrics)) {
+  remaining_names <- setdiff(colnames(metrics), variable_name)
+  metrics_train <- as.data.frame(metrics[training_subset, ])
+  variable <- as.data.frame(metrics[, variable_name, drop = FALSE])
+  idx <- index(metrics)
+  tree_merge_xts(
+    mclapply(
+      remaining_names,
+      function(name) {
+        model <- rq(substitute(y ~ x, list(y = as.name(name),
+                                           x = as.name(variable_name))),
+                    data = metrics_train, na.action = na.omit)
+        metrics[, name, drop = FALSE] - predict(model, variable)
+      }))
 }
 
 # works for cmdscale and tsne TODO allow zooming
