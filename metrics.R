@@ -17,6 +17,7 @@ library(dygraphs)
 library(stringr)
 library(bit64)
 library(dplyr)
+library(matie)
 
 lsd <- function(pos = 1) {
   names(grep("^function$", 
@@ -322,6 +323,15 @@ get_periodogram_distance <- function(x, metrics, subset = 1:nrow(metrics)) {
   simplify2array(mclapply(metrics, function(m) {
     diss.INT.PER(as.vector(x[subset]), as.vector(m[subset]), normalize = T)
   }))
+}
+
+get_matie <- function(x, metrics, subset = 1:nrow(metrics)) {
+  simplify2array(
+    mclapply(
+      metrics,
+      function(m) {
+        ma(data.frame(as.vector(m[subset]), as.vector(x[subset])))$A
+      }))
 }
 
 exclude_columns <- function(what, from) {
