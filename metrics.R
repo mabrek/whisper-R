@@ -810,10 +810,15 @@ explore_2d <- function(embedding, metrics) {
 
   app <- shinyApp(
     ui = fluidPage(
-      fluidRow(
-        column(6, plotOutput("embedding_plot", click = "embedding_click",
-                             brush = "embedding_brush")),
-        column(6, dygraphOutput("series")))),
+      tags$head(
+        tags$style(HTML("
+            .dygraph-legend > span { display: none; }
+            .dygraph-legend > span.highlight { display: inline; }
+        "))),
+      plotOutput("embedding_plot", click = "embedding_click",
+                 brush = "embedding_brush"),
+      tags$div(id = "labels-div", class = "dygraph-legend"),
+      dygraphOutput("series")),
     
     server = function(input, output) {
       vals <- reactiveValues(select_rows = c())
@@ -830,9 +835,12 @@ explore_2d <- function(embedding, metrics) {
       output$series <- renderDygraph({
         if (length(vals$select_rows) != 0) {
           selected <- series[, vals$select_rows, drop = F]
+          # TODO highlight single series
           dygraph(selected) %>%
             dyHighlight(highlightSeriesBackgroundAlpha = 0.2,
                         highlightCircleSize = 0) %>%
+            dyLegend(show = "always", hideOnMouseOut = FALSE,
+                     labelsDiv = "labels-div") %>%
             dyOptions(drawYAxis = FALSE)
         }
       })
