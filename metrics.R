@@ -800,9 +800,9 @@ remove_variable <- function(metrics, variable_name,
 explore_2d <- function(embedding, metrics) {
   embedding_df <- data.frame(x = embedding[, 1], y = embedding[, 2])
   rownames(embedding_df) <- colnames(metrics)
-  series <- metrics - apply(metrics, 2, median, na.rm = TRUE)
-  ranges <- apply(series, 2, range, na.rm = TRUE)
-  series <- series / (ranges[2, ] - ranges[1, ])
+  medians <- apply(metrics, 2, median, na.rm = TRUE)
+  ranges <- apply(metrics, 2, range, na.rm = TRUE)
+  series <- scale(metrics, center = medians, scale = ranges[2, ] - ranges[1, ])
   theme_no_labels <- theme(
     axis.text.x = element_blank(), axis.title.x = element_blank(), 
     axis.ticks.x = element_blank(), axis.text.y = element_blank(),
