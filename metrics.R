@@ -800,17 +800,58 @@ remove_variable <- function(metrics, variable_name,
 explore_2d <- function(embedding, metrics) {
   embedding_df <- data.frame(x = embedding[, 1], y = embedding[, 2])
   rownames(embedding_df) <- colnames(metrics)
-  app <- shinyApp(ui = fluidPage(helpText("select points to draw series"), plotOutput("embedding_plot", 
-    click = "embedding_click"), dygraphOutput("series")), server = function(input, 
-    output) {
-    output$embedding_plot <- renderPlot({
-      ggplot(embedding_df, aes(x, y)) + geom_point()
+  series <- metrics - apply(metrics, 2, median, na.rm = TRUE)
+  ranges <- apply(series, 2, range, na.rm = TRUE)
+  series <- series / (ranges[2, ] - ranges[1, ])
+  theme_no_labels <- theme(
+    axis.text.x = element_blank(), axis.title.x = element_blank(), 
+    axis.ticks.x = element_blank(), axis.text.y = element_blank(),
+    axis.title.y = element_blank(), axis.ticks.y = element_blank())
+
+  app <- shinyApp(
+    ui = fluidPage(
+      fluidRow(
+        column(6, plotOutput("embedding_plot", click = "embedding_click",
+                             brush = "embedding_brush")),
+        column(6, dygraphOutput("series")))),
+    
+    server = function(input, output) {
+      vals <- reactiveValues(select_rows = c())
+      
+      output$embedding_plot <- renderPlot({
+        embedding <- embedding_df
+        selected <- embedding[vals$select_rows, ]
+        ggplot(embedding, aes(x, y)) +
+          geom_point(alpha = 0.5, color = "gray20") + 
+          geom_point(data = selected, color = "red", size = 4) +
+          theme_no_labels + xlab(NULL) + ylab(NULL)
+      })
+  
+      output$series <- renderDygraph({
+        if (length(vals$select_rows) != 0) {
+          selected <- series[, vals$select_rows, drop = F]
+          dygraph(selected) %>%
+            dyHighlight(highlightSeriesBackgroundAlpha = 0.2,
+                        highlightCircleSize = 0) %>%
+            dyOptions(drawYAxis = FALSE)
+        }
+      })
+  
+      observeEvent(
+        input$embedding_click,
+        {
+          vals$select_rows <- rownames(nearPoints(embedding_df,
+                                                  input$embedding_click, 
+                                                  maxpoints = 1))
+        })
+  
+      observeEvent(
+        input$embedding_brush,
+        {
+          vals$select_rows <- rownames(brushedPoints(embedding_df,
+                                                     input$embedding_brush))
+        })
     })
-    output$series <- renderDygraph({
-      n <- rownames(nearPoints(embedding_df, input$embedding_click))[1]
-      dygraph(metrics[, n, drop = FALSE], main = n)
-    })
-  })
   runApp(app)
 }
 
