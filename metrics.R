@@ -761,11 +761,13 @@ cooccurences <- function(x, metrics, wider = 0) {
   colSums(metrics & x)
 }
 
+# returned period is in number of samples (sampling intervals)
 find_periods <- function(metrics, significance = 0.99, ...) {
   nfp <- mclapply(
     metrics,
     function(m) {
-      spec <- spec.mtm(as.ts(m), plot = FALSE, Ftest = TRUE,
+      spec <- spec.mtm(ts(coredata(m), frequency = 1),
+                       plot = FALSE, Ftest = TRUE,
                        returnZeroFreq = FALSE, ...)
       f.sig <- spec$mtm$Ftest > qf(significance, 2, 2 * spec$mtm$k - 2)
       if (any(f.sig, na.rm = TRUE)) {
