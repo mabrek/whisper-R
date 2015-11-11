@@ -16,6 +16,7 @@ library(shiny)
 library(dygraphs)
 library(stringr)
 library(bit64)
+library(plyr)
 library(dplyr)
 library(matie)
 
