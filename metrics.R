@@ -722,6 +722,7 @@ svd_u_xts <- function(udv, metrics) {
   xts(udv$u, order.by = index(metrics))
 }
 
+# seems to be useless because of loadings with different signs
 get_top_loadings <- function(loadings, n = 3) {
   as.vector(apply(abs(loadings), 2, order, decreasing = T)[1:n, ])
 }
