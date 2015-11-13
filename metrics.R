@@ -874,7 +874,7 @@ drop_zero_dist <- function(d) {
   as.dist(mu)
 } 
 
-shinyplot <- function(metrics, limit = 300, breakpoints = data.frame(), vline = c()) {
+shinyplot <- function(metrics, limit = 100, breakpoints = data.frame(), vline = c()) {
   data <- metrics
   if (length(colnames(data)) == 0) {
     colnames(data) <- 1:ncol(data)
