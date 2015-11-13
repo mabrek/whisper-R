@@ -16,7 +16,6 @@ library(shiny)
 library(dygraphs)
 library(stringr)
 library(bit64)
-library(plyr)
 library(dplyr)
 library(matie)
 
@@ -778,7 +777,7 @@ find_periods <- function(metrics, significance = 0.99, ...) {
         data.frame()
       }
     })
-  result <- rbind.fill(nfp) # TODO dplyr::bind_rows and remove plyr
+  result <- bind_rows(nfp)
   result$name <- as.character(result$name)
   result[order(result$Ftest), ]
 }
