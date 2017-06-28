@@ -133,8 +133,63 @@ aggregate_jmeter <- function(jmeter, interval.seconds) {
                          "elapsed.max", "elapsed.median", "elapsed.percentile99",
                          "elapsed.total", "threads.median", "concurrency.min",
                          "concurrency.max"))
-    aggregated
+        aggregated
   }))
+}
+
+read_pgbench_log <- function(file.name) {
+  m <- read.table(
+    file.name,
+    header = FALSE,
+    col.names = c("client_id", "transaction_no", "time", "script_no", "time_epoch", "time_us"),
+    colClasses = c("integer", "integer", "integer", "integer", "integer", "integer"))
+  m[, "end_time"] <- as.POSIXct(m[, "time_epoch"],
+                            origin = "1970-01-01 00:00:00",
+                            format = "%s") + m[, "time_us"] / 1000000
+  m[, "elapsed"] <- m[, "time"] / 1000000
+  m[, "start_time"] <- m[, "end_time"] - m[, "elapsed"]
+  m[, c("client_id", "transaction_no", "start_time", "end_time", "elapsed")]
+}
+
+aggregate_pgbench <- function(pgbench, interval.seconds) {
+  z <- read.zoo(pgbench[, c("start_time", "elapsed")],
+                index.column = "start_time")
+  ticks <- align.time(index(z), interval.seconds)
+  completed <- as.xts(aggregate(zoo(1, index(z)), ticks, sum)) / interval.seconds
+  elapsed.raw <- z[, "elapsed"] * 1000000  # convert to microseconds
+  elapsed.min <- as.xts(aggregate(elapsed.raw, ticks, min, na.rm = TRUE))
+  elapsed.max <- as.xts(aggregate(elapsed.raw, ticks, max, na.rm = TRUE))
+  elapsed.median <- as.xts(aggregate(elapsed.raw, ticks, median,
+                                     na.rm = TRUE))
+  elapsed.percentile99 <- as.xts(aggregate(elapsed.raw, ticks, quantile,
+                                           probs = c(0.99), na.rm = TRUE))
+  elapsed.total <- as.xts(aggregate(elapsed.raw, ticks, sum, na.rm = TRUE))
+  start.time <- pgbench[, "start_time"]
+  end.time <- pgbench[, "end_time"]
+  stamps.raw <- c(start.time, end.time)
+  stamps.order <- order(stamps.raw)
+  concurrency.raw <- zoo(
+    cumsum(c(rep_len(1, length(start.time)),
+             rep_len(-1, length(end.time)))[stamps.order]),
+    stamps.raw[stamps.order])
+  concurrency.min <- as.xts(aggregate(concurrency.raw,
+                                      align.time(index(concurrency.raw),
+                                                 interval.seconds),
+                                      min, na.rm = TRUE))
+  concurrency.max <- as.xts(aggregate(concurrency.raw,
+                                      align.time(index(concurrency.raw), 
+                                                 interval.seconds),
+                                      max, na.rm = TRUE))
+  aggregated <- merge.xts(completed, elapsed.min, elapsed.max,
+                          elapsed.median, elapsed.percentile99,
+                          elapsed.total, concurrency.min,
+                          concurrency.max)
+  colnames(aggregated) <-
+    c("rate", "elapsed.min",
+      "elapsed.max", "elapsed.median", "elapsed.percentile99",
+      "elapsed.total", "concurrency.min",
+      "concurrency.max")
+  aggregated
 }
 
 read_fping <- function(file.name) {
